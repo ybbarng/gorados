@@ -38,16 +38,9 @@ snu = {
 
 seoul = {
     'lat_start': 37.428388,
-    'lat_end': 40.701417,
+    'lat_end': 37.701417,
     'lng_start': 126.764500,
     'lng_end': 127.183760
-}
-
-test = {
-    'lat_start': 37.5,
-    'lat_end': 37.6,
-    'lng_start': 126.7,
-    'lng_end': 126.8
 }
 
 
@@ -58,7 +51,7 @@ params = {
     '_': 1486001171
 }
 
-region = test
+region = seoul
 print(region)
 
 precision = 20
@@ -69,24 +62,8 @@ lng_end = int(region['lng_end'] * precision) + 1
 
 print('# of regions: {}'.format((lat_end - lat_start) * (lng_end - lng_start)))
 
-data1 = {}
-for i in range(lat_start, lat_end):
-    for j in range(lng_start, lng_end):
-        location = {
-            'lat_start': i / precision,
-            'lat_end': (i + 1) / precision,
-            'lng_start': j / precision,
-            'lng_end': (j + 1) / precision,
-        }
-        print(location)
-        for key, value in location.items():
-            params[key] = value
-        response = get(url, params=params)
-        data = jsonify.jsonify(response)
-        data1['{}-{}'.format(location['lat_start'], location['lng_start'])] = len(data)
-        time.sleep(1)
-
-data2 = {}
+n_portals = []
+portals = []
 for i in range(lat_start, lat_end):
     for j in range(lng_start, lng_end):
         location = {
@@ -101,6 +78,12 @@ for i in range(lat_start, lat_end):
         response = get(url, params=params)
         data = jsonify.jsonify(response)
         key = '{}-{}'.format(location['lat_start'], location['lng_start'])
-        if data1[key] != len(data):
-            print('{}: {} != {}'.format(key, data1[key], len(data)))
+        n_portals.append((key, len(data)))
+        portals += data
         time.sleep(1)
+
+with open('n_portals1.json', 'w') as f:
+    json.dump(n_portals, f, indent='  ')
+
+with open('portals1.json', 'w') as f:
+    json.dump({'data': portals}, f, indent='  ')
