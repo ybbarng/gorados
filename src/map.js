@@ -3,8 +3,8 @@ $(function() {
   var map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/dark-v9',
-      center: [127.6358, 36.2683],
-      zoom: 6
+      center: [126.964645, 37.475533],
+      zoom: 16
   });
 
   var pokemon_width = 40;
