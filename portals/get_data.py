@@ -83,7 +83,7 @@ for i in range(lat_start, lat_end):
         portals += data
         time.sleep(1)
 
-with sqlite3.connect('data.db') as conn:
+with sqlite3.connect('../data.db') as conn:
     cur = conn.cursor()
     table_name = 'portal'
 
