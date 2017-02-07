@@ -10,7 +10,7 @@ $(function() {
   map.on('load', function() {
     map.addSource('portals', {
         type: 'geojson',
-        data: 'data.geojson',
+        data: 'portals.geojson',
         cluster: true,
         clusterMaxZoom: 12,
         clusterRadius: 20
@@ -81,5 +81,23 @@ $(function() {
 						'text-size': 12
 				}
 		});
+
+    var pokemon_width = 40;
+    var pokemon_height = 40;
+    $.get('pokemons.json', function(pokemons) {
+      $.each(pokemons, function(i, pokemon) {
+        var el = document.createElement('div');
+        el.className = 'marker';
+        el.style.backgroundImage = 'url(static/images/pokemons/' + pokemon['pokemon_id'] + '.png)';
+        el.style.width = pokemon_width + 'px';
+        el.style.height = pokemon_height + 'px';
+        el.style.backgroundSize = '100%';
+
+        console.log(el);
+        new mapboxgl.Marker(el, {offset: [-pokemon_width / 2, -pokemon_height / 2]})
+          .setLngLat([pokemon['longitude'], pokemon['latitude']])
+          .addTo(map);
+      });
+    });
   });
 });

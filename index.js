@@ -2,14 +2,15 @@ var express = require('express');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('data.db');
 
-var table_name = 'portal';
+var portal_table = 'portal';
+var pokemon_table = 'pokemon';
 
 var app = express();
 
 app.use(express.static(__dirname + '/app'));
 
-app.get('/data.geojson', function(req, res) {
-  db.all('SELECT * FROM ' + table_name,
+app.get('/portals.geojson', function(req, res) {
+  db.all('SELECT * FROM ' + portal_table,
     /*+ ' WHERE latitude >= ? AND latitude < ? AND longitude >= ? AND longitude < ?',
     req.query.min_latitude,
     req.query.max_latitude,
@@ -43,6 +44,19 @@ app.get('/data.geojson', function(req, res) {
       }
 
       res.send(result);
+  });
+});
+
+app.get('/pokemons.json', function(req, res) {
+  db.all('SELECT * FROM ' + pokemon_table + ' LIMIT 500',
+    /*+ ' WHERE latitude >= ? AND latitude < ? AND longitude >= ? AND longitude < ?',
+    req.query.min_latitude,
+    req.query.max_latitude,
+    req.query.min_longitude,
+    req.query.max_longitude,
+    */
+    function(err, rows) {
+      res.send(rows);
   });
 });
 
