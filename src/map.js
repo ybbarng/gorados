@@ -1,42 +1,71 @@
 $(function() {
-  var map = new daum.maps.Map($('#map')[0], {
-    center: new daum.maps.LatLng(36.2683, 127.6358),
-    level: 14
+  mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+  var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v9',
+      center: [127.6358, 36.2683],
+      zoom: 6
   });
 
-  var clusterer = new daum.maps.MarkerClusterer({
-      map: map,
-      averageCenter: true,
-      minLevel: 10,
-      calculator: [13],
-      styles:[{
-          width: '30px',
-          height: '30px',
-          background: 'rgba(51, 204, 255, .8)',
-          borderRadius: '15px',
-          color: '#000',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          lineHeight: '31px'
-      }]
-  });
-
-  var bounds = map.getBounds();
-  var sw = bounds.getSouthWest();
-  var ne = bounds.getNorthEast();
-  var params = {
-    min_latitude: sw.hb,
-    min_longitude: sw.gb,
-    max_latitude: ne.hb,
-    max_longitude: ne.gb
-  };
-
-  $.get("data.json", params, function(data) {
-    var markers = $(data).map(function(i, element) {
-      return new daum.maps.Marker({
-          position: new daum.maps.LatLng(element.latitude, element.longitude)
-      });
+  map.on('load', function() {
+    map.addSource('portals', {
+        type: 'geojson',
+        data: 'data.geojson',
+        cluster: true,
+        clusterMaxZoom: 12,
+        clusterRadius: 20
     });
-    clusterer.addMarkers(markers);
+
+		map.addLayer({
+				'id': 'unclustered-points',
+				'type': 'symbol',
+				'source': 'portals',
+				'filter': ['!has', 'point_count'],
+				'layout': {
+						'icon-image': 'marker-15'
+				}
+		});
+
+		// Display the earthquake data in three layers, each filtered to a range of
+		// count values. Each range gets a different fill color.
+		var layers = [
+				[150, '#f28cb1'],
+				[20, '#f1f075'],
+				[0, '#51bbd6']
+		];
+
+		layers.forEach(function (layer, i) {
+				map.addLayer({
+						'id': 'cluster-' + i,
+						'type': 'circle',
+						'source': 'portals',
+						'paint': {
+								'circle-color': layer[1],
+								'circle-radius': 16,
+                'circle-blur': 0.9,
+                'circle-opacity': 0.9
+						},
+						'filter': i === 0 ?
+								['>=', 'point_count', layer[0]] :
+								['all',
+										['>=', 'point_count', layer[0]],
+										['<', 'point_count', layers[i - 1][0]]]
+				});
+		});
+
+		// Add a layer for the clusters' count labels
+		map.addLayer({
+				'id': 'cluster-count',
+				'type': 'symbol',
+				'source': 'portals',
+				'layout': {
+						'text-field': '{point_count}',
+						'text-font': [
+								'DIN Offc Pro Medium',
+								'Arial Unicode MS Bold'
+						],
+						'text-size': 12
+				}
+		});
   });
 });
