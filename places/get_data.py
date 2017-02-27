@@ -68,8 +68,8 @@ lng_end = int(region['lng_end'] * precision) + 1
 
 print('# of regions: {}'.format((lat_end - lat_start) * (lng_end - lng_start)))
 
-n_portals = []
-portals = []
+n_places = []
+places = []
 for i in range(lat_start, lat_end):
     for j in range(lng_start, lng_end):
         location = {
@@ -84,13 +84,13 @@ for i in range(lat_start, lat_end):
         data = jsonify.jsonify(response)
         key = '{}-{}'.format(location['lat_start'], location['lng_start'])
         print(location, len(data))
-        n_portals.append((key, len(data)))
-        portals += data
+        n_places.append((key, len(data)))
+        places += data
         time.sleep(1)
 
 with sqlite3.connect('../data.db') as conn:
     cur = conn.cursor()
-    table_name = 'portal'
+    table_name = 'place'
 
     cur.execute('''
 CREATE TABLE IF NOT EXISTS {0} (
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS {0} (
     cur.execute('CREATE INDEX IF NOT EXISTS {0}_latitude_idx ON {0} (longitude);'.format(table_name));
 
     insert_sql = 'INSERT OR REPLACE INTO {0} (id, latitude, longitude, type) values (?, ?, ?, ?);'.format(table_name);
-    for data in portals:
-        cur.execute(insert_sql, (data['id'], data['lat'], data['lng'], data['type']))
+    for place in places:
+        cur.execute(insert_sql, (place['id'], place['lat'], place['lng'], place['type']))
     cur.execute('SELECT COUNT(*) FROM {0};'.format(table_name));
     print('# of records: {}'.format(cur.fetchall()[0]))
