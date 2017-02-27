@@ -11,8 +11,10 @@ $(function() {
 
   function removeMarkersOutOfBounds(markers, bounds, removeAll) {
     var toBeRemoved = [];
+    var now = Date.now() / 1000;
     markers.forEach(function(marker, id, _) {
-      if (!bounds.contains(marker.getLatLng()) || removeAll) {  // temporary method
+      if (!bounds.contains(marker.getLatLng()) ||
+          (marker.pokemon && Number(marker.pokemon['despawn']) < now)) {
         map.removeLayer(marker);
         toBeRemoved.push(id);
       }
