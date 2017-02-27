@@ -17,10 +17,7 @@ function getIvRank(iv_perfection) {
 }
 
 function pad(n) {
-  if (n < 10) {
-    return '0' + n;
-  }
-  return '' + n;
+  return (n < 10 ? '0' : '') + n;
 }
 
 exports.toString = function(pokemon) {
