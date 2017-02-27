@@ -1,6 +1,8 @@
 $(function() {
   L.mapbox.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
-  var map = new L.mapbox.Map('map', 'mapbox.streets')
+  var map = new L.mapbox.Map('map', 'mapbox.streets', {
+      maxZoom: 16
+    })
     .setView([37.475533, 126.964645], 16);
   L.control.locate().addTo(map);
 
