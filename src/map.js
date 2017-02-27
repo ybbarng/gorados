@@ -20,16 +20,36 @@ $(function() {
 
   var markers = [];
 
+  function removeMarkersOutOfBounds(bounds) {
+    var toBeRemoved = [];
+    for (var i = 0; i < markers.length; i++) {
+      var marker = markers[i];
+      map.removeLayer(marker);
+      toBeRemoved.push(marker);
+    }
+    for (var i = 0; i < toBeRemoved.length; i++) {
+      markers.splice(markers.indexOf(toBeRemoved[i]), 1);
+    }
+  }
+
   var updateFlag = false;
   function updatePokemons() {
     if (updateFlag) {
       return;
     }
     updateFlag = true;
-    for (var i = 0; i < markers.length; i++) {
-      map.removeLayer(markers[i]);
-    }
     var bounds = map.getBounds();
+    removeMarkersOutOfBounds(bounds);
+    var toBeRemoved = [];
+    for (var i = 0; i < markers.length; i++) {
+      var marker = markers[i];
+      console.log(bounds.contains(marker.getLatLng()));
+      map.removeLayer(marker);
+      toBeRemoved.append(marker);
+    }
+    for (var i = 0; i < toBeRemoved.length; i++) {
+      markers.splice(markers.indexOf(toBeRemoved[i]), 1);
+    }
     var params = {
       'min_latitude': bounds._southWest.lat,
       'max_latitude': bounds._northEast.lat,
