@@ -167,3 +167,5 @@ tags
 *.json
 *.txt
 app/js/
+
+data.db
