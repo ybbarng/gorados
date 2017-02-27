@@ -63,6 +63,12 @@ $(function() {
         var marker = new L.marker(
             [pokemon['latitude'], pokemon['longitude']],
             {icon: pokemonMarker});
+        marker.bindPopup('<b>' + pokemon['pokemon_id'] + '</b><br>' +
+          '사라짐: ' + pokemon['despawn'] + '<br>' +
+          '(' + pokemon['attack'] + '/' + pokemon['defence']+ '/' + pokemon['stamina'] + ')<br>' +
+          pokemon['move1'] + '/' + pokemon['move2'] + '<br>' +
+          'disguise: ' + pokemon['disguise'] + '<br>'
+        );
         if (!pokemonMarkers.has(id)) {
           map.addLayer(marker);
           pokemonMarkers.set(id, marker);
