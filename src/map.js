@@ -124,8 +124,8 @@ $(function() {
 
 
   function update() {
-    updatePokemons();
     updatePlaces();
+    updatePokemons();
   }
 
   update();
