@@ -9,7 +9,9 @@ import jsonify
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.2.149.29 Safari/525.13',
-    'content-type': 'application/x-www-form-urlencoded'
+    'content-type': 'application/x-www-form-urlencoded',
+    'Host': 'www2.pokemonsmap.com',
+    'Referer': 'http://www2.pokemonsmap.com/map/',
 }
 
 def get(url, header=None, params=None, encoding='utf-8', print_url=False, cookies=None):
@@ -73,12 +75,12 @@ for i in range(lat_start, lat_end):
             'lng_start': j / precision,
             'lng_end': (j + 1) / precision,
         }
-        print(location)
         for key, value in location.items():
             params[key] = value
         response = get(url, params=params)
         data = jsonify.jsonify(response)
         key = '{}-{}'.format(location['lat_start'], location['lng_start'])
+        print(location, len(data))
         n_portals.append((key, len(data)))
         portals += data
         time.sleep(1)
@@ -92,7 +94,7 @@ CREATE TABLE IF NOT EXISTS {0} (
     id TEXT PRIMARY KEY,
     latitude REAL NOT NULL,
     longitude real NOT NULL,
-    type TEXT CHECK (type IN ('pokestop', 'gym')) NOT NULL
+    type TEXT CHECK (type IN ('pokestop', 'gym', '7-eleven', 'lotteria', 'angel-in-us')) NOT NULL
 );
 '''.format(table_name));
     cur.execute('CREATE INDEX IF NOT EXISTS {0}_latitude_idx ON {0} (latitude);'.format(table_name));
