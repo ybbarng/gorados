@@ -164,8 +164,8 @@ tags
 
 # End of https://www.gitignore.io/api/vim,python,node
 
-*.json
-*.txt
+since.json
+response.txt
 app/js/map.js
 
 data.db
