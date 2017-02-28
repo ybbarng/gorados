@@ -9,7 +9,7 @@ $(function() {
     .setView([37.475533, 126.964645], 16);
   L.control.locate().addTo(map);
 
-  function removeMarkersOutOfBounds(markers, bounds, removeAll) {
+  function removeMarkersOutOfBounds(markers, bounds) {
     var toBeRemoved = [];
     var now = Date.now() / 1000;
     markers.forEach(function(marker, id, _) {
@@ -65,7 +65,7 @@ $(function() {
       'max_longitude': bounds._northEast.lng
     };
     $.get('pokemons.json', params, function(pokemons) {
-      removeMarkersOutOfBounds(pokemonMarkers, bounds, true);
+      removeMarkersOutOfBounds(pokemonMarkers, bounds);
       $.each(pokemons, function(i, pokemon) {
         var id = pokemon['id'];
         var pokemonMarker = pokemonMarkerTempletes[pokemon['pokemon_id']];
@@ -125,7 +125,7 @@ $(function() {
       'max_longitude': bounds._northEast.lng
     };
     $.get('places.json', params, function(places) {
-      removeMarkersOutOfBounds(placeMarkers, bounds, false);
+      removeMarkersOutOfBounds(placeMarkers, bounds);
       $.each(places, function(i, place) {
         var id = place['id'];
         var placeMarker = placeMarkerTempletes[place['type']];
