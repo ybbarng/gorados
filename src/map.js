@@ -83,6 +83,9 @@ $(function() {
           updatePopup();
           // The popup will be open automatically by the default event listener
         });
+        marker.addEventListener('dblclick', function(e) {
+          // To prevent the map from being moved when a marker is double-clicked
+        });
         if (!pokemonMarkers.has(id)) {
           map.addLayer(marker);
           pokemonMarkers.set(id, marker);
