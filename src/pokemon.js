@@ -1,3 +1,6 @@
+var Platform = require('platform');
+var platform = Platform.os.family;
+
 var Pokedex = require('./pokedex_korean.json');
 var Moves = require('./pokemon_moves.json');
 
@@ -20,23 +23,49 @@ function pad(n) {
   return (n < 10 ? '0' : '') + n;
 }
 
-function getMapDom(href, imageSrc) {
-  return '<a href="' + href + ' "class="map-app-icon-wrapper">' +
+function getMapDom(href, imageSrc, newTap) {
+  var newTapStr = '';
+  if (newTap) {
+    newTapStr = ' target="_blank"';
+  }
+  return '<a href="' + href + '"' + newTapStr + ' class="map-app-icon-wrapper">' +
     '<image src="' + imageSrc + '" class="map-app-icon">' +
     '</a>';
 }
 
+function getKakaoMap(latitude, longitude) {
+  var imageSrc = 'static/images/maps/kakao-map.png';
+  var href = '';
+  var hrefs = {
+    desktop: 'http://map.daum.net/?q=' + latitude + ',' + longitude,
+    mobile: 'daummaps://route?ep=' + latitude + ',' + longitude + '&by=CAR'
+  };
+  if (['Android', 'iOS'].indexOf(platform) !== -1) {
+    href = hrefs.mobile;
+  } else {
+    href = hrefs.desktop;
+  }
+  return getMapDom(href, imageSrc, href === hrefs.desktop);
+}
+
+function getGoogleMap(latitude, longitude, label) {
+  var imageSrc = 'static/images/maps/google-map.png';
+  var hrefs = {
+    desktop: 'https://www.google.co.kr/maps/place/' + latitude + ',' + longitude,
+    Android: 'geo:?q=' + latitude + ',' + longitude + '(' + label + ')',
+    iOS: 'comgooglemaps://?q=' + latitude + ',' + longitude
+  };
+  var href = hrefs.desktop;
+  if (hrefs[platform]) {
+    href = hrefs[platform];
+  }
+  return getMapDom(href, imageSrc, href === hrefs.desktop);
+}
+
 function getMapLinks(latitude, longitude, label) {
-  var kakaoMap = getMapDom(
-    'daummaps://route?ep=' + latitude + ',' + longitude + '&by=CAR',
-    'static/images/maps/kakao-map.png');
-  var googleMapAndroid = getMapDom(
-    'geo:?q=' + latitude +',' + longitude + '(' + label + ')',
-    'static/images/maps/google-map.png');
-  var googleMapIos = getMapDom(
-    'comgooglemaps://?q=' + latitude + ',' + longitude,
-    'static/images/maps/google-map.png');
-  return '<div class="map-apps">' + kakaoMap + googleMapAndroid + '</div>';
+  var kakaoMap = getKakaoMap(latitude, longitude);
+  var googleMap = getGoogleMap(latitude, longitude, label);
+  return '<div class="map-apps">' + kakaoMap + googleMap + '</div>';
 }
 
 exports.toString = function(pokemon) {
