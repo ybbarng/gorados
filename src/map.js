@@ -32,7 +32,7 @@ $(function() {
       return;
     }
     if (selectedMarker.pokemon) {
-      selectedMarker.setPopupContent(Pokemon.toString(selectedMarker.pokemon));
+      selectedMarker.setPopupContent(selectedMarker.pokemon.getPopupContents());
     }
   }
 
@@ -68,24 +68,23 @@ $(function() {
     $.get('pokemons.json', params, function(pokemons) {
       removeMarkersOutOfBounds(pokemonMarkers, bounds);
       $.each(pokemons, function(i, pokemon) {
-        var id = pokemon['id'];
-        var pokemonMarker = pokemonMarkerTempletes[pokemon['pokemon_id']];
+        var pokemon = new Pokemon(pokemon);
+        var id = pokemon.id;
+        var pokemon_id = pokemon.pokemon_id;
+        var pokemonMarker = pokemonMarkerTempletes[pokemon.pokemon_id];
         if (pokemonMarker === undefined) {
-          var pokemon_id = pokemon['pokemon_id'];
-          if (pokemon['disguise'] === '1') { // If ditto
-            pokemon_id = '132';
-          }
           pokemonMarker = new PokemonMarker({iconUrl: 'static/images/pokemons/' + pokemon_id + '.png'});
-          pokemonMarkerTempletes[pokemon['pokemon_id']] = pokemonMarker;
+          pokemonMarkerTempletes[pokemon_id] = pokemonMarker;
         }
         var marker = new L.marker(
-            [pokemon['latitude'], pokemon['longitude']],
+            pokemon.getLatLng(),
             {icon: pokemonMarker});
         marker.pokemon = pokemon;
+        pokemon.setMarker(marker);
         marker.bindPopup('');
         marker.addEventListener('click', function(e) {
           var now = Date.now() / 1000;
-          marker.setOpacity(Pokemon.getOpacity(e.target, now));
+          marker.setOpacity(pokemon.getOpacity(now));
           selectedMarker = e.target;
           updatePopup();
           // The popup will be open automatically by the default event listener
@@ -159,7 +158,7 @@ $(function() {
       if (!bounds.contains(marker.getLatLng())) {
         return;
       }
-      var opacity = Pokemon.getOpacity(marker, now);
+      var opacity = marker.pokemon.getOpacity(now);
       marker.setOpacity(opacity);
     });
   }
@@ -177,7 +176,7 @@ $(function() {
 
   map.on('popupclose', function() {
     var now = Date.now() / 1000;
-    selectedMarker.setOpacity(Pokemon.getOpacity(selectedMarker, now, true));
+    selectedMarker.setOpacity(selectedMarker.pokemon.getOpacity(now, true));
     selectedMarker = null;
   });
 

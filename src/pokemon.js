@@ -4,11 +4,11 @@ var platform = Platform.os.family;
 var Pokedex = require('./pokedex_korean.json');
 var Moves = require('./pokemon_moves.json');
 
-function getIvPerfection(attack, defence, stamina) {
+function calculateIvPerfection(attack, defence, stamina) {
   return (Number(attack) + Number(defence) + Number(stamina)) / 45 * 100;
 }
 
-function getIvRank(iv_perfection) {
+function calculateIvRank(iv_perfection) {
   var ranks = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D', 'E'];
   var perfections = [100, 95, 90, 80, 60, 40, 0];
   for (var i = 0; i < perfections.length; i++) {
@@ -23,17 +23,63 @@ function pad(n) {
   return (n < 10 ? '0' : '') + n;
 }
 
-exports.getOpacity = function(pokemonMarker, now, dehighlight) {
-  var pokemon = pokemonMarker.pokemon;
+// Pokemon Class
+function Pokemon(pokemon) {
+  this.id = pokemon['id'];
+  this.name = Pokedex[pokemon['pokemon_id']] || pokemon['pokemon_id'];
+  this.pokemon_id = pokemon['pokemon_id'];
+  if (pokemon['disguise'] === '1') {
+    this.pokemon_id = '132';
+    this.name = Pokedex[this.pokemon_id] + '(' + this.name + '(으)로 변신)';
+  }
+  this.latitude = pokemon['latitude'];
+  this.longitude = pokemon['longitude'];
+  this.despawn = Number(pokemon['despawn']);
+  this.disguise = pokemon['disguise'];
+  this.attack = Number(pokemon['attack']);
+  this.defence = Number(pokemon['defence']);
+  this.stamina = Number(pokemon['stamina']);
+  this.move1 = Moves[pokemon['move1']] || pokemon['move1'];
+  this.move2 = Moves[pokemon['move2']] || pokemon['move2'];
+  this.perfection = calculateIvPerfection(this.attack, this.defence, this.stamina);
+  this.perfectionStr = this.perfection.toFixed(1);
+  this.rank = calculateIvRank(this.perfection);
+}
+
+Pokemon.prototype.setMarker = function(marker) {
+  this.marker = marker;
+};
+
+Pokemon.prototype.getRemainTime = function(_now) {
+  var now = _now || Date.now() / 1000;
+  return this.despawn - now;
+};
+
+Pokemon.prototype.getRemainTimeStr = function(now) {
+  var delta = this.getRemainTime(now);
+  var despawnStr = '';
+  if (delta > 0) {
+    despawnStr = pad(parseInt(delta / 60)) + ':' + pad(parseInt(delta % 60));
+  } else {
+    despawnStr = '사라졌습니다.';
+  }
+  return despawnStr;
+};
+
+Pokemon.prototype.getOpacity = function(now, dehighlight) {
   if (!dehighlight) {
-    if (pokemonMarker.getPopup().isOpen()) {
+    if (this.marker && this.marker.getPopup().isOpen()) {
       return 1;
     }
   }
-  var diff = Number(pokemon['despawn']) - now;
+  var diff = this.getRemainTime();
   var opacity = diff / 60 / 30 * 0.5 + 0.5;
   return opacity;
-}
+};
+
+Pokemon.prototype.getLatLng = function() {
+  return [this.latitude, this.longitude];
+};
 
 function getMapDom(href, imageSrc, newTap) {
   var newTapStr = '';
@@ -80,32 +126,14 @@ function getMapLinks(latitude, longitude, label) {
   return '<div class="map-apps">' + kakaoMap + googleMap + '</div>';
 }
 
-exports.toString = function(pokemon) {
-  var name = Pokedex[pokemon['pokemon_id']] || pokemon['pokemon_id'];
-  if (pokemon['disguise'] === '1') {
-    name = Pokedex['132'] + '(' + name + '(으)로 변신)';
-    pokemon['pokemon_id'] = '132';
-  }
-  var perfection = getIvPerfection(
-    pokemon['attack'],
-    pokemon['defence'],
-    pokemon['stamina']);
-  var rank = getIvRank(perfection);
-  var perfectionStr = perfection.toFixed(1);
-  var move1 = Moves[pokemon['move1']] || pokemon['move1'];
-  var move2 = Moves[pokemon['move2']] || pokemon['move2'];
-
-  var delta = Number(pokemon['despawn']) - (Date.now() / 1000);
-  var despawnStr = '';
-  if (delta > 0) {
-    despawnStr = pad(parseInt(delta / 60)) + ':' + pad(parseInt(delta % 60));
-  } else {
-    despawnStr = '사라졌습니다.';
-  }
-  return '<h2>' + name + '</h2> ' +
-    '<b>개체치</b>: '+ rank + ' (' + perfectionStr + '%: ' + pokemon['attack'] + '/' + pokemon['defence'] + '/' + pokemon['stamina'] + ')<br>' +
+Pokemon.prototype.getPopupContents = function() {
+  var despawnStr = this.getRemainTimeStr();
+  return '<h2>' + this.name + '</h2> ' +
+    '<b>개체치</b>: ' + this.rank + ' (' + this.perfectionStr + '%: ' + this.attack + '/' + this.defence + '/' + this.stamina + ')<br>' +
     '<b>남은 시간</b>: ' + despawnStr + '<br>' +
-    '<b>기술</b>: ' + move1 + '/' + move2 + '<br>' +
-    'disguise: ' + pokemon['disguise'] + '<br>' +
-    getMapLinks(pokemon['latitude'], pokemon['longitude'], name);
-}
+    '<b>기술</b>: ' + this.move1 + '/' + this.move2 + '<br>' +
+    'disguise: ' + this.disguise + '<br>' +
+    getMapLinks(this.latitude, this.longitude, this.name);
+};
+
+module.exports = Pokemon;
