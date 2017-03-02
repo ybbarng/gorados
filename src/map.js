@@ -11,13 +11,13 @@ $(function() {
 
   var placeInvisibleZoom = 14;
 
-  function removeMarkersOutOfBounds(markers, bounds) {
+  function removeMarkersOutOfBounds(markers, bounds, forceClear) {
     var toBeRemoved = [];
     var now = Date.now() / 1000;
     var zoom = map.getZoom();
     markers.forEach(function(marker, id, _) {
       if (!bounds.contains(marker.getLatLng()) ||
-          (marker.pokemon/* && Number(marker.pokemon['despawn']) < now*/) ||
+          (marker.pokemon && (forceClear || Number(marker.pokemon['despawn']) < now)) ||
           (marker.pokemon === undefined && zoom <= placeInvisibleZoom)) {
         map.removeLayer(marker);
         toBeRemoved.push(id);
@@ -57,7 +57,7 @@ $(function() {
   var pokemonMarkers = new Map();
 
   var updatePokemonsFlag = false;
-  function updatePokemons() {
+  function updatePokemons(forceClear) {
     if (updatePokemonsFlag) {
       return;
     }
@@ -71,7 +71,7 @@ $(function() {
       'zoom_level': map.getZoom()
     };
     $.get('pokemons.json', params, function(pokemons) {
-      removeMarkersOutOfBounds(pokemonMarkers, bounds);
+      removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
       $.each(pokemons, function(i, pokemon) {
         var pokemon = new Pokemon(pokemon);
         var id = pokemon.id;
@@ -176,15 +176,19 @@ $(function() {
     });
   }
 
-  function update() {
+  function update(forceClear) {
     updatePokemonsInMap();
     updatePlaces();
-    updatePokemons();
+    updatePokemons(forceClear);
   }
 
   update();
+  var zoom = map.getZoom();
   map.on('moveend', function() {
-    update();
+    var new_zoom = map.getZoom();
+    var forceClear = new_zoom < zoom;
+    zoom = new_zoom;
+    update(forceClear);
   });
 
   map.on('popupclose', function() {
