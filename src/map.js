@@ -58,13 +58,19 @@ $(function() {
     }
   });
 
+  var NewMarker = L.divIcon({
+    className: 'new-marker',
+    html: '<div class="new-notification"></div>',
+    iconSize: [40, 40]
+  });
+
   var pokemonMarkerTempletes = {
   };
 
   var pokemonMarkers = new Map();
 
   var updatePokemonsFlag = false;
-  function updatePokemons(forceClear) {
+  function updatePokemons(newNotification, forceClear) {
     if (updatePokemonsFlag) {
       return;
     }
@@ -109,6 +115,14 @@ $(function() {
         if (!pokemonMarkers.has(id)) {
           map.addLayer(marker);
           pokemonMarkers.set(id, marker);
+
+          if (newNotification) {
+            var newMarker = L.marker(pokemon.getLatLng(), {icon: NewMarker});
+            map.addLayer(newMarker);
+            setTimeout(function() {
+              map.removeLayer(newMarker);
+            }, 1000);
+          }
         }
       });
       updatePokemonsFlag = false;
@@ -187,7 +201,7 @@ $(function() {
   function update(forceClear) {
     updatePokemonsInMap();
     updatePlaces();
-    updatePokemons(forceClear);
+    updatePokemons(false, forceClear);
   }
 
   update();
@@ -208,6 +222,8 @@ $(function() {
   });
 
   setInterval(updatePopup, 1000);
-  setInterval(updatePokemons, 60 * 1000);
+  setInterval(function() {
+    updatePokemons(true, false);
+  }, 60 * 1000);
   setInterval(updatePokemonsInMap, 60 * 1000);
 });
