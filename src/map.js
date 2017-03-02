@@ -1,10 +1,14 @@
 var Utils = require('./utils');
 var Pokemon = require('./pokemon');
 
+var Platform = require('platform');
+var platform = Platform.os.family;
+
 $(function() {
   L.mapbox.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+  var maxZoom = ['Android', 'iOS'].indexOf(platform) !== -1 ? 16 : 19;
   var map = new L.mapbox.Map('map', 'mapbox.streets', {
-      maxZoom: 16
+      maxZoom: maxZoom
     })
     .setView([37.475533, 126.964645], 16);
   L.control.locate().addTo(map);
