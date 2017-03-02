@@ -4,7 +4,7 @@ body {
 
 #map {
   width: 100%;
-  height: 100vh;
+  height: 90vh;
 }
 
 .leaflet-control-locate .leaflet-bar-part {
