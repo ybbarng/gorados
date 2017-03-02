@@ -9,12 +9,16 @@ $(function() {
     .setView([37.475533, 126.964645], 16);
   L.control.locate().addTo(map);
 
+  var placeInvisibleZoom = 14;
+
   function removeMarkersOutOfBounds(markers, bounds) {
     var toBeRemoved = [];
     var now = Date.now() / 1000;
+    var zoom = map.getZoom();
     markers.forEach(function(marker, id, _) {
       if (!bounds.contains(marker.getLatLng()) ||
-          (marker.pokemon && Number(marker.pokemon['despawn']) < now)) {
+          (marker.pokemon/* && Number(marker.pokemon['despawn']) < now*/) ||
+          (marker.pokemon === undefined && zoom <= placeInvisibleZoom)) {
         map.removeLayer(marker);
         toBeRemoved.push(id);
       }
@@ -123,8 +127,12 @@ $(function() {
     if (updatePlacesFlag) {
       return;
     }
-    updatePlacesFlag = true;
     var bounds = Utils.boundsWithPadding(map.getBounds(), 0.5);
+    if (map.getZoom() <= placeInvisibleZoom) {
+      removeMarkersOutOfBounds(placeMarkers, bounds);
+      return;
+    }
+    updatePlacesFlag = true;
     var params = {
       'min_latitude': bounds._southWest.lat,
       'max_latitude': bounds._northEast.lat,
@@ -133,6 +141,9 @@ $(function() {
     };
     $.get('places.json', params, function(places) {
       removeMarkersOutOfBounds(placeMarkers, bounds);
+      if (map.getZoom() <= placeInvisibleZoom) {
+        return;
+      }
       $.each(places, function(i, place) {
         var id = place['id'];
         var placeMarker = placeMarkerTempletes[place['type']];
