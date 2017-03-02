@@ -1,6 +1,7 @@
 var express = require('express');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('data.db');
+var classification = require('./classification.json');
 
 var place_table = 'place';
 var pokemon_table = 'pokemon';
@@ -36,10 +37,18 @@ app.get('/places.json', function(req, res) {
 });
 
 app.get('/pokemons.json', function(req, res) {
+  if (!req.query.zoom_level) {
+    res.send([]);
+    return;
+  }
+  var zoom_level = Number(req.query.zoom_level) - 12;
+  zoom_level = Math.min(Math.max(0, zoom_level), 4);
+  var pokemons = classification[zoom_level];
   var timestamp = Date.now() / 1000 | 0;
   var center = get_center(req);
   db.all('SELECT * FROM ' + pokemon_table +
     ' WHERE latitude >= ? AND latitude < ? AND longitude >= ? AND longitude < ? AND despawn > ?' +
+    ' AND pokemon_id in ( ' + pokemons.join(',') + ')' +
     ' ORDER BY ((latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?)) ASC' +
     ' LIMIT 500',
     req.query.min_latitude,

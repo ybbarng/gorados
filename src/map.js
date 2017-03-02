@@ -63,7 +63,8 @@ $(function() {
       'min_latitude': bounds._southWest.lat,
       'max_latitude': bounds._northEast.lat,
       'min_longitude': bounds._southWest.lng,
-      'max_longitude': bounds._northEast.lng
+      'max_longitude': bounds._northEast.lng,
+      'zoom_level': map.getZoom()
     };
     $.get('pokemons.json', params, function(pokemons) {
       removeMarkersOutOfBounds(pokemonMarkers, bounds);
