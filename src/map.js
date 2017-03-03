@@ -7,15 +7,17 @@ var platform = Platform.os.family;
 var Throbber = require('./throbber');
 var Get = require('./get');
 
+var defaultLatLng = [37.475533, 126.964645];
+var defaultScale = 16;
+
 
 $(function() {
-  var latLng = Get.getUrlParameter('p');
-  if (latLng) {
-    latLng = latLng.split(',').map(Number);
-  } else {
-    latLng = [37.475533, 126.964645];
+  var paramLatLng = Get.getUrlParameter('p');
+  if (paramLatLng) {
+    paramLatLng = paramLatLng.split(',').map(Number);
   }
-  var scale = Math.min(10, Math.max(parseInt(Get.getUrlParameter('z')), 16)) || 16;
+  var latLng = paramLatLng || defaultLatLng;
+  var scale = Math.min(10, Math.max(parseInt(Get.getUrlParameter('z')), 16)) || defaultScale;
   L.mapbox.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
   var maxZoom = ['Android', 'iOS'].indexOf(platform) !== -1 ? 16 : 19;
   var map = new L.mapbox.Map('map', 'mapbox.streets', {
@@ -134,6 +136,15 @@ $(function() {
             setTimeout(function() {
               map.removeLayer(newMarker);
             }, 1000);
+          }
+
+          if (paramLatLng && i === 0) {
+            var pLatLng = pokemon.getLatLng();
+            if (pLatLng[0] === paramLatLng[0] &&
+                pLatLng[1] === paramLatLng[1]) {
+              marker.fireEvent('click');
+              paramLatLng = null;
+            }
           }
         }
       });
