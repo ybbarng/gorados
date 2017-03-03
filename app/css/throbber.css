@@ -130,7 +130,7 @@
   }
 }
 
-svg {
+.throbber svg {
   width: 300px;
   animation: animationFrames ease-in-out 1.2s;
   animation-delay: 0.05s;
