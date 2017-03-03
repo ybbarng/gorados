@@ -5,15 +5,23 @@ var Platform = require('platform');
 var platform = Platform.os.family;
 
 var Throbber = require('./throbber');
+var Get = require('./get');
 
 
 $(function() {
+  var latLng = Get.getUrlParameter('p');
+  if (latLng) {
+    latLng = latLng.split(',').map(Number);
+  } else {
+    latLng = [37.475533, 126.964645];
+  }
+  var scale = Math.min(10, Math.max(parseInt(Get.getUrlParameter('z')), 16)) || 16;
   L.mapbox.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
   var maxZoom = ['Android', 'iOS'].indexOf(platform) !== -1 ? 16 : 19;
   var map = new L.mapbox.Map('map', 'mapbox.streets', {
       maxZoom: maxZoom
     })
-    .setView([37.475533, 126.964645], 16);
+    .setView(latLng, scale);
   L.control.locate().addTo(map);
 
   var placeInvisibleZoom = 14;
