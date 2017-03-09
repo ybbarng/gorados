@@ -1,6 +1,7 @@
 var Pokedex = require('./pokedex_korean.json');
 
 var onApply = null;
+var filters = [];
 exports.initFilter = function(onApplyHandler) {
   $('#filter-button a').click(onClickFilterButton);
   $('#filter-apply').click(onClickFilterApply);
@@ -8,6 +9,7 @@ exports.initFilter = function(onApplyHandler) {
   $('#filters-popup').click(onClickFiltersPopup);
   $('#search').keyup(onSearch);
   onApply = onApplyHandler;
+  loadFilters();
 };
 
 var initialized = false;
@@ -26,7 +28,7 @@ function initFilters() {
       break;
     }
     var $filter = $('<li class="filter">' +
-      '<input type="checkbox" id="checkbox_' + number + '" value="' + number + '">' +
+      '<input type="checkbox" id="checkbox_' + number + '" value="' + number + '"' + ((filters.indexOf(number) !== -1) ? ' checked' : '') + '>' +
       '<label for="checkbox_' + number + '">' +
       '<img src="static/images/pokemons/' + number + '.png' + '" alt="' + Pokedex[number] + '">' +
       number + ': ' + Pokedex[number] +
@@ -43,12 +45,19 @@ function initFilters() {
   initialized = true;
 }
 
-var filters = [];
+function loadFilters() {
+  var cookie_filters = $.cookie('filters');
+  if (cookie_filters) {
+    filters = cookie_filters.split(',');
+  }
+}
+
 function onClickFilterApply() {
   filters = [];
   $('.filter input:checked').each(function() {
     filters.push(this.value);
   });
+  $.cookie('filters', filters);
   if (onApply) {
     onApply();
   }
