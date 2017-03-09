@@ -23,7 +23,7 @@ function initFilters() {
       '<input type="checkbox" id="checkbox_' + number + '" value="' + number + '">' +
       '<label for="checkbox_' + number + '">' +
       '<img src="static/images/pokemons/' + number + '.png' + '" alt="' + Pokedex[number] + '">' +
-      Pokedex[number] +
+      number + ': ' + Pokedex[number] +
       '</label>' +
       '</div>');
     $pokemon_list.append($filter);
