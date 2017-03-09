@@ -19,13 +19,13 @@ function initFilters() {
     if (number * 1 > filter_max) {
       break;
     }
-    var $filter = $('<div class="filter">' +
+    var $filter = $('<li class="filter">' +
       '<input type="checkbox" id="checkbox_' + number + '" value="' + number + '">' +
       '<label for="checkbox_' + number + '">' +
       '<img src="static/images/pokemons/' + number + '.png' + '" alt="' + Pokedex[number] + '">' +
       number + ': ' + Pokedex[number] +
       '</label>' +
-      '</div>');
+      '</li>');
     $pokemon_list.append($filter);
   }
   initialized = true;
