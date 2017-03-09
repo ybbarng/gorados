@@ -4,6 +4,8 @@ import sqlite3
 
 import requests
 
+from siphash import SipHash
+
 import jsonify
 from RepeatedTimer import RepeatedTimer
 
@@ -12,6 +14,11 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.2.149.29 Safari/525.13',
     'content-type': 'application/x-www-form-urlencoded'
 }
+
+sip_hash = SipHash()
+
+k = 0xED9884ECA780EC95BC20E29DA4ED95B4
+
 
 def get(url, header=None, params=None, encoding='utf-8', print_url=False, cookies=None):
     my_headers = headers
@@ -87,7 +94,7 @@ def save_pokemons(pokemons):
 
         insert_sql = 'INSERT OR REPLACE INTO {0} (id, pokemon_id, latitude, longitude, despawn, disguise, attack, defence, stamina, move1, move2) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'.format(table_name);
         for pokemon in pokemons:
-            p_id = ','.join([pokemon['pokemon_id'], pokemon['lat'], pokemon['lng'], pokemon['despawn']])
+            p_id = '{:02x}'.format(sip_hash.auth(k, ','.join([pokemon['pokemon_id'], pokemon['lat'], pokemon['lng'], pokemon['despawn']])))
             cur.execute(insert_sql, (p_id, pokemon['pokemon_id'], pokemon['lat'], pokemon['lng'], pokemon['despawn'], pokemon['disguise'], pokemon['attack'], pokemon['defence'], pokemon['stamina'], pokemon['move1'], pokemon['move2']))
         #cur.execute('DELETE FROM {0} WHERE despawn < {1};'.format(table_name, int(time.time())));
         #cur.execute('SELECT COUNT(*) FROM {0};'.format(table_name));
