@@ -4,6 +4,8 @@ var onApply = null;
 exports.initFilter = function(onApplyHandler) {
   $('#filter-button a').click(onClickFilterButton);
   $('#filter-apply').click(onClickFilterApply);
+  $('#filters').click(onClickFilters);
+  $('#filters-popup').click(onClickFiltersPopup);
   onApply = onApplyHandler;
 };
 
@@ -55,3 +57,11 @@ function onClickFilterApply() {
 exports.getFilters = function() {
   return filters;
 };
+
+function onClickFiltersPopup(e) {
+  e.stopPropagation();
+}
+
+function onClickFilters() {
+  $('#filters').fadeOut();
+}
