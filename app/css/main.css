@@ -230,3 +230,24 @@ ul#filter-list {
   height: 30px;
   vertical-align: middle;
 }
+
+.leaflet-popup-content h2 a {
+  position: relative;
+}
+
+img.pokedex {
+  display: inline-block;
+  width: 24px;
+  height: 20px;
+  padding-bottom: 3px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+img.pokedex-pokemon-image {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  top: 4px;
+  left: 8px;
+}

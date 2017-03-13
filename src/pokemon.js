@@ -128,7 +128,12 @@ function getMapLinks(latitude, longitude, label) {
 
 Pokemon.prototype.getPopupContents = function() {
   var despawnStr = this.getRemainTimeStr();
-  return '<h2>' + this.name + '</h2> ' +
+  return '<h2>' + this.name +
+      '<a href="http://pokemongo.inven.co.kr/dataninfo/pokemon/detail.php?code=' + this.pokemon_id + '">' +
+        '<img class="pokedex" src="/static/images/pokedex.png" alt="포켓몬 도감에서 보기">' +
+        '<img class="pokedex-pokemon-image" src="/static/images/pokemons/' + this.pokemon_id + '.png">' +
+      '</a>' +
+    '</h2> ' +
     '<b>개체치</b>: ' + this.rank + ' (' + this.perfectionStr + '%: ' + this.attack + '/' + this.defence + '/' + this.stamina + ')<br>' +
     '<b>남은 시간</b>: <span class="despawn">' + despawnStr + '</span><br>' +
     '<b>기술</b>: ' + this.move1 + '/' + this.move2 + '<br>' +
