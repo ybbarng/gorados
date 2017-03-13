@@ -24,7 +24,15 @@ $(function() {
   var map = new L.mapbox.Map('map', 'mapbox.streets')
     .setView(latLng, scale);
   L.control.locate({
-    'keepCurrentZoomLevel': true
+    flyTo: false,
+    keepCurrentZoomLevel: true,
+    strings: {
+      title: '내 위치 보기',
+      metersUnit: 'm',
+      feetUnit: 'ft',
+      popup: '점을 중심으로 {distance}{unit} 안에 있습니다.',
+      outsideMapBoundsMsg: '지도 밖에 있는 것 같습니다.'
+    }
   }).addTo(map);
 
   var placeInvisibleZoom = 14;
