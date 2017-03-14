@@ -41,6 +41,10 @@ app.get('/pokemons.json', function(req, res) {
     res.send([]);
     return;
   }
+  var id = null;
+  if (req.query.id && /^\w+$/.test(req.query.id)) {
+    id = req.query.id;
+  }
   var zoom_level = parseInt(req.query.zoom_level) - 12;
   zoom_level = Math.min(Math.max(0, zoom_level), 4);
   console.log('Zoom Level: ' + req.query.zoom_level + ', ' + 'Classification Index: ' + zoom_level);
@@ -70,6 +74,23 @@ app.get('/pokemons.json', function(req, res) {
     center.latitude,
     center.longitude,
     center.longitude,
+    function(err, rows) {
+      res.send(rows);
+  });
+});
+
+app.get('/pokemon.json', function(req, res) {
+  var id = null;
+  if (req.query.id && /^\w+$/.test(req.query.id)) {
+    id = req.query.id;
+  } else {
+    res.send([]);
+    return;
+  }
+  db.all('SELECT *' +
+    ' FROM ' + pokemon_table +
+    ' WHERE id = ?',
+    id,
     function(err, rows) {
       res.send(rows);
   });

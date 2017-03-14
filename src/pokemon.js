@@ -133,7 +133,7 @@ function getMoveLinkText(move, moveName) {
 }
 
 Pokemon.prototype.getLinkText = function() {
-  return '<a href="?p=' + this.latitude + ',' + this.longitude + '&z=12" class="get-link" title="링크 얻기"><img src="/static/images/get_link.png"></a>';
+  return '<a href="?id=' + this.id + '&p=' + this.latitude + ',' + this.longitude + '&z=12" class="get-link" title="링크 얻기"><img src="/static/images/get_link.png"></a>';
 }
 
 Pokemon.prototype.getPopupContents = function() {

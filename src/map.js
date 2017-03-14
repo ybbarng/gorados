@@ -22,6 +22,7 @@ $(function() {
   }
   var latLng = paramLatLng || defaultLatLng;
   var scale = Math.min(10, Math.max(parseInt(Get.getUrlParameter('z')), 16)) || defaultScale;
+  var paramId = Get.getUrlParameter('id');
   L.mapbox.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
   var map = new L.mapbox.Map('map', 'mapbox.streets')
     .setView(latLng, scale);
@@ -93,6 +94,59 @@ $(function() {
 
   var pokemonMarkers = new Map();
 
+  function addPokemons(pokemons, bounds, forceClear, newNotification) {
+    removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
+    var now = Date.now() / 1000;
+    $.each(pokemons, function(i, pokemon) {
+      var pokemon = new Pokemon(pokemon);
+      var id = pokemon.id;
+      var pokemon_id = pokemon.pokemon_id;
+      var pokemonMarker = pokemonMarkerTempletes[pokemon.pokemon_id];
+      if (pokemonMarker === undefined) {
+        pokemonMarker = new PokemonMarker({iconUrl: 'static/images/pokemons/' + pokemon_id + '.png'});
+        pokemonMarkerTempletes[pokemon_id] = pokemonMarker;
+      }
+      var marker = new L.marker(
+          pokemon.getLatLng(),
+          {icon: pokemonMarker});
+      marker.pokemon = pokemon;
+      pokemon.setMarker(marker);
+      marker.bindPopup('');
+      marker.setOpacity(pokemon.getOpacity(now));
+      marker.addEventListener('click', function(e) {
+        var now = Date.now() / 1000;
+        marker.setOpacity(pokemon.getOpacity(now));
+        selectedMarker = e.target;
+        selectedMarker.setPopupContent(selectedMarker.pokemon.getPopupContents());
+        // The popup will be open automatically by the default event listener
+      });
+      marker.addEventListener('dblclick', function(e) {
+        // To prevent the map from being moved when a marker is double-clicked
+      });
+      if (!pokemonMarkers.has(id)) {
+        map.addLayer(marker);
+        pokemonMarkers.set(id, marker);
+
+        if (newNotification) {
+          var newMarker = L.marker(pokemon.getLatLng(), {icon: NewMarker});
+          map.addLayer(newMarker);
+          setTimeout(function() {
+            map.removeLayer(newMarker);
+          }, 1000);
+        }
+
+        if (paramLatLng && i === 0) {
+          var pLatLng = pokemon.getLatLng();
+          if (pLatLng[0] === paramLatLng[0] &&
+              pLatLng[1] === paramLatLng[1]) {
+            marker.fireEvent('click');
+            paramLatLng = null;
+          }
+        }
+      }
+    });
+  }
+
   var updatePokemonsFlag = false;
   function updatePokemons(newNotification, forceClear) {
     if (updatePokemonsFlag) {
@@ -110,59 +164,17 @@ $(function() {
       'filters': Filter.getFilters().join(',')
     };
     $.get('pokemons.json', params, function(pokemons) {
-      removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
-      var now = Date.now() / 1000;
-      $.each(pokemons, function(i, pokemon) {
-        var pokemon = new Pokemon(pokemon);
-        var id = pokemon.id;
-        var pokemon_id = pokemon.pokemon_id;
-        var pokemonMarker = pokemonMarkerTempletes[pokemon.pokemon_id];
-        if (pokemonMarker === undefined) {
-          pokemonMarker = new PokemonMarker({iconUrl: 'static/images/pokemons/' + pokemon_id + '.png'});
-          pokemonMarkerTempletes[pokemon_id] = pokemonMarker;
-        }
-        var marker = new L.marker(
-            pokemon.getLatLng(),
-            {icon: pokemonMarker});
-        marker.pokemon = pokemon;
-        pokemon.setMarker(marker);
-        marker.bindPopup('');
-        marker.setOpacity(pokemon.getOpacity(now));
-        marker.addEventListener('click', function(e) {
-          var now = Date.now() / 1000;
-          marker.setOpacity(pokemon.getOpacity(now));
-          selectedMarker = e.target;
-          selectedMarker.setPopupContent(selectedMarker.pokemon.getPopupContents());
-          // The popup will be open automatically by the default event listener
-        });
-        marker.addEventListener('dblclick', function(e) {
-          // To prevent the map from being moved when a marker is double-clicked
-        });
-        if (!pokemonMarkers.has(id)) {
-          map.addLayer(marker);
-          pokemonMarkers.set(id, marker);
-
-          if (newNotification) {
-            var newMarker = L.marker(pokemon.getLatLng(), {icon: NewMarker});
-            map.addLayer(newMarker);
-            setTimeout(function() {
-              map.removeLayer(newMarker);
-            }, 1000);
-          }
-
-          if (paramLatLng && i === 0) {
-            var pLatLng = pokemon.getLatLng();
-            if (pLatLng[0] === paramLatLng[0] &&
-                pLatLng[1] === paramLatLng[1]) {
-              marker.fireEvent('click');
-              paramLatLng = null;
-            }
-          }
-        }
-      });
+      addPokemons(pokemons, bounds, forceClear, newNotification);
       Throbber.hideThrobber();
       updatePokemonsFlag = false;
     });
+    if (paramId !== null) {
+      params['id'] = paramId;
+      $.get('pokemon.json', {'id': paramId}, function(pokemons) {
+        addPokemons(pokemons, bounds, forceClear, false);
+      });
+      paramId = null;
+    }
   }
   /* pokemon marker end */
 
