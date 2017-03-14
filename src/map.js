@@ -94,8 +94,7 @@ $(function() {
 
   var pokemonMarkers = new Map();
 
-  function addPokemons(pokemons, bounds, forceClear, newNotification) {
-    removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
+  function addPokemons(pokemons, bounds, forceClear, newNotification, paramId) {
     var now = Date.now() / 1000;
     $.each(pokemons, function(i, pokemon) {
       var pokemon = new Pokemon(pokemon);
@@ -134,14 +133,17 @@ $(function() {
             map.removeLayer(newMarker);
           }, 1000);
         }
-
         if (paramLatLng && i === 0) {
           var pLatLng = pokemon.getLatLng();
           if (pLatLng[0] === paramLatLng[0] &&
               pLatLng[1] === paramLatLng[1]) {
             marker.fireEvent('click');
-            paramLatLng = null;
           }
+          paramLatLng = null;
+        }
+        if (paramId && paramId === pokemon.id) {
+            marker.fireEvent('click');
+            paramId = null;
         }
       }
     });
@@ -164,16 +166,15 @@ $(function() {
       'filters': Filter.getFilters().join(',')
     };
     $.get('pokemons.json', params, function(pokemons) {
+      removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
       addPokemons(pokemons, bounds, forceClear, newNotification);
       Throbber.hideThrobber();
       updatePokemonsFlag = false;
     });
     if (paramId !== null) {
-      params['id'] = paramId;
       $.get('pokemon.json', {'id': paramId}, function(pokemons) {
-        addPokemons(pokemons, bounds, forceClear, false);
+        addPokemons(pokemons, bounds, forceClear, false, paramId);
       });
-      paramId = null;
     }
   }
   /* pokemon marker end */
