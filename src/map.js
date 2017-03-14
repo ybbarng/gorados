@@ -94,7 +94,7 @@ $(function() {
 
   var pokemonMarkers = new Map();
 
-  function addPokemons(pokemons, bounds, forceClear, newNotification, paramId) {
+  function addPokemons(pokemons, bounds, forceClear, newNotification) {
     var now = Date.now() / 1000;
     $.each(pokemons, function(i, pokemon) {
       var pokemon = new Pokemon(pokemon);
