@@ -132,6 +132,10 @@ function getMoveLinkText(move, moveName) {
   return '<a href="http://pokemongo.inven.co.kr/dataninfo/move/detail.php?code=' + move + '" target="_blank" title="\'' + moveName + '\' 기술 자세히 알아보기">' + moveName + '</a>';
 }
 
+Pokemon.prototype.getLinkText = function() {
+  return '<a href="?p=' + this.latitude + ',' + this.longitude + '&z=12" class="get-link" title="링크 얻기"><img src="/static/images/get_link.png"></a>';
+}
+
 Pokemon.prototype.getPopupContents = function() {
   var despawnStr = this.getRemainTimeStr();
   return '<h2>' + this.name +
@@ -140,6 +144,7 @@ Pokemon.prototype.getPopupContents = function() {
         '<img class="pokedex-pokemon-image" src="/static/images/pokemons/' + this.pokemon_id + '.png">' +
       '</a>' +
     '</h2> ' +
+    this.getLinkText() +
     '<b>개체치</b>: ' + this.rank + ' (' + this.perfectionStr + '%: ' + this.attack + '/' + this.defence + '/' + this.stamina + ')<br>' +
     '<b>남은 시간</b>: <span class="despawn">' + despawnStr + '</span><br>' +
     '<b>기술</b>: ' + getMoveLinkText(this.move1, this.move1Str) + '/' + getMoveLinkText(this.move2, this.move2Str) + '<br>' +

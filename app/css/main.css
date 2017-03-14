@@ -306,3 +306,14 @@ img.pokedex-pokemon-image {
 #type-chart-popup img {
   width: 100%;
 }
+
+.get-link {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.get-link img {
+  width: 20px;
+  height: 20px;
+}
