@@ -9,8 +9,11 @@ var pokemon_table = 'pokemon';
 
 var app = express();
 
+var oneDay = 864000000;
+
 app.use(compression());
 app.use(express.static(__dirname + '/app'));
+app.use('/static', express.static(__dirname + '/static', { maxAge: oneDay }));
 
 function get_center(req) {
   return {
