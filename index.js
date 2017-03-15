@@ -1,4 +1,5 @@
 var express = require('express');
+var compression = require('compression');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('data.db');
 var classification = require('./classification.json');
@@ -8,6 +9,7 @@ var pokemon_table = 'pokemon';
 
 var app = express();
 
+app.use(compression());
 app.use(express.static(__dirname + '/app'));
 
 function get_center(req) {
