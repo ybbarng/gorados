@@ -3,9 +3,9 @@
 """
 import time
 import json
-import sqlite3
 
 import requests
+import pymysql
 
 import jsonify
 
@@ -88,23 +88,29 @@ for i in range(lat_start, lat_end):
         places += data
         time.sleep(1)
 
-with sqlite3.connect('../data.db') as conn:
-    cur = conn.cursor()
+conn = pymysql.connect(host='localhost', port=3306, user='pokemongo', passwd='YOUR_DB_PASSWORD', db='pokemongo', charset='utf8')
+with conn.cursor() as cur:
     table_name = 'place'
 
     cur.execute('''
 CREATE TABLE IF NOT EXISTS {0} (
-    id TEXT PRIMARY KEY,
-    latitude REAL NOT NULL,
-    longitude real NOT NULL,
-    type TEXT CHECK (type IN ('pokestop', 'gym', '7-eleven', 'lotteria', 'angel-in-us')) NOT NULL
+    id CHAR(100) PRIMARY KEY,
+    latitude DECIMAL(11, 8) NOT NULL,
+    longitude DECIMAL(11, 8) NOT NULL,
+    type CHAR(20) NOT NULL,
+    CHECK (type IN ('pokestop', 'gym', '7-eleven', 'lotteria', 'angel-in-us')),
+    INDEX {0}_latitude_idx (latitude),
+    INDEX {0}_longitude_idx (longitude)
 );
 '''.format(table_name));
-    cur.execute('CREATE INDEX IF NOT EXISTS {0}_latitude_idx ON {0} (latitude);'.format(table_name));
-    cur.execute('CREATE INDEX IF NOT EXISTS {0}_longitude_idx ON {0} (longitude);'.format(table_name));
 
-    insert_sql = 'INSERT OR REPLACE INTO {0} (id, latitude, longitude, type) values (?, ?, ?, ?);'.format(table_name);
+    insert_sql = '''REPLACE INTO {0}
+        (id, latitude, longitude, type)
+        values
+        (%s, %s, %s, %s);'''.format(table_name);
     for place in places:
         cur.execute(insert_sql, (place['id'], place['lat'], place['lng'], place['type']))
     cur.execute('SELECT COUNT(*) FROM {0};'.format(table_name));
     print('# of records: {}'.format(cur.fetchall()[0]))
+conn.commit()
+conn.close()

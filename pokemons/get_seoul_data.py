@@ -1,8 +1,8 @@
 import time
 import json
-import sqlite3
 
 import cfscrape
+import pymysql
 
 from siphash import SipHash
 
@@ -65,53 +65,63 @@ def get_pokemons(since, name, url):
     headers = {
         'referer': 'https://{}pokemap.com/'.format(name),
         'accept': '*/*',
-        'authority': '{}pokemap.com'.format(name),
+        #'authority': '{}pokemap.com'.format(name),
         'x-requested-with': 'XMLHttpRequest'
     }
     url = url + '?' + '&'.join(k + '=' + str(v) for k, v in params.items())
-    response = get(url, header=headers)
-    #with open('result.html', 'w') as f:
-    #    f.write(response)
-    response = json.loads(response)
-    since = response['meta']['inserted']
-    print('new since: {}'.format(since))
-    save_since(str(since), name)
-    print('New {} pokemons are collected.'.format(len(response['pokemons'])))
-    return response['pokemons']
+    response = get(url, header=headers, print_url=True)
+    try:
+        response = json.loads(response)
+        since = response['meta']['inserted']
+        print('new since: {}'.format(since))
+        save_since(str(since), name)
+        print('New {} pokemons are collected.'.format(len(response['pokemons'])))
+        return response['pokemons']
+    except Exception as e:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}".format(type(e).__name__, e.args)
+        print (message)
+        with open('error.html', 'w') as f:
+            f.write(response)
+        return []
 
 def save_pokemons(pokemons):
     print('Save pokemons')
-    with sqlite3.connect('../data.db') as conn:
-        cur = conn.cursor()
+    conn = pymysql.connect(host='localhost', port=3306, user='pokemongo', passwd='YOUR_DB_PASSWORD', db='pokemongo', charset='utf8')
+    with conn.cursor() as cur:
         table_name = 'pokemon'
 
         cur.execute('''
     CREATE TABLE IF NOT EXISTS {0} (
-        id TEXT PRIMARY KEY,
-        pokemon_id INTEGER NOT NULL,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
+        id CHAR(16) PRIMARY KEY,
+        pokemon_id SMALLINT NOT NULL,
+        latitude DECIMAL(11, 8) NOT NULL,
+        longitude DECIMAL(11, 8) NOT NULL,
         despawn INTEGER NOT NULL,
-        disguise INTEGER,
-        attack INTEGER,
-        defence INTEGER,
-        stamina INTEGER,
-        move1 INTEGER,
-        move2 INTEGER
+        disguise TINYINT,
+        attack TINYINT,
+        defence TINYINT,
+        stamina TINYINT,
+        move1 SMALLINT,
+        move2 SMALLINT,
+        INDEX {0}_pokemon_id_idx (pokemon_id),
+        INDEX {0}_latitude_idx (latitude),
+        INDEX {0}_longitude_idx (longitude),
+        INDEX {0}_despawn_idx (despawn)
     );
     '''.format(table_name));
-        cur.execute('CREATE INDEX IF NOT EXISTS {0}_pokemon_id_idx ON {0} (pokemon_id);'.format(table_name));
-        cur.execute('CREATE INDEX IF NOT EXISTS {0}_latitude_idx ON {0} (latitude);'.format(table_name));
-        cur.execute('CREATE INDEX IF NOT EXISTS {0}_longitude_idx ON {0} (longitude);'.format(table_name));
-        cur.execute('CREATE INDEX IF NOT EXISTS {0}_despawn_idx ON {0} (despawn);'.format(table_name));
 
-        insert_sql = 'INSERT OR REPLACE INTO {0} (id, pokemon_id, latitude, longitude, despawn, disguise, attack, defence, stamina, move1, move2) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'.format(table_name);
+        insert_sql = '''REPLACE INTO {0}
+            (id, pokemon_id, latitude, longitude, despawn, disguise, attack, defence, stamina, move1, move2)
+            VALUES
+            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''.format(table_name);
         for pokemon in pokemons:
             p_id = '{:02x}'.format(sip_hash.auth(k, ','.join([pokemon['pokemon_id'], pokemon['lat'], pokemon['lng'], pokemon['despawn']])))
             cur.execute(insert_sql, (p_id, pokemon['pokemon_id'], pokemon['lat'], pokemon['lng'], pokemon['despawn'], pokemon['disguise'], pokemon['attack'], pokemon['defence'], pokemon['stamina'], pokemon['move1'], pokemon['move2']))
         #cur.execute('DELETE FROM {0} WHERE despawn < {1};'.format(table_name, int(time.time())));
         #cur.execute('SELECT COUNT(*) FROM {0};'.format(table_name));
         #print('# of records: {}'.format(cur.fetchall()[0]))
+    conn.commit()
+    conn.close()
     print('Saved')
 
 def do_work(whole=False, save=False):

@@ -1,11 +1,19 @@
 var express = require('express');
 var compression = require('compression');
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('data.db');
+var mysql = require('mysql');
 var classification = require('./classification.json');
 var present = require('present');
 var winston = require('winston');
 require('winston-daily-rotate-file');
+
+var db = mysql.createConnection({
+  host: 'localhost',
+  user: 'pokemongo',
+  password: 'YOUR_DB_PASSWORD',
+  database: 'pokemongo'
+});
+
+db.connect();
 
 var timeOffset = 9 * 60 * 60 * 1000;
 
@@ -60,19 +68,24 @@ app.get('/places.json', function(req, res) {
   var center = get_center(req);
   var startTime = present();
   logger.log('debug', 'Places query is requested to the DB.');
-  db.all('SELECT * FROM ' + place_table +
+  db.query('SELECT * FROM ' + place_table +
     ' WHERE latitude >= ? AND latitude < ? AND longitude >= ? AND longitude < ?' +
     ' ORDER BY ((latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?)) ASC' +
     ' LIMIT 500',
-    req.query.min_latitude,
-    req.query.max_latitude,
-    req.query.min_longitude,
-    req.query.max_longitude,
-    center.latitude,
-    center.latitude,
-    center.longitude,
-    center.longitude,
-    function(err, rows) {
+    [
+      req.query.min_latitude,
+      req.query.max_latitude,
+      req.query.min_longitude,
+      req.query.max_longitude,
+      center.latitude,
+      center.latitude,
+      center.longitude,
+      center.longitude,
+    ],
+    function(err, rows, fields) {
+      if (err) {
+        throw err;
+      }
       var endTime = present();
       logger.log('debug', 'The response of Places query is received from the DB.');
       logger.log('info', 'Places query time spent: %d ms', endTime - startTime);
@@ -104,23 +117,27 @@ app.get('/pokemons.json', function(req, res) {
   var center = get_center(req);
   var startTime = present();
   logger.log('debug', 'Pokemons query is requested to the DB.');
-  db.all('SELECT *' +
+  db.query('SELECT *' +
     ' FROM ' + pokemon_table +
-    ' INDEXED BY pokemon_despawn_idx' +
     ' WHERE latitude >= ? AND latitude < ? AND longitude >= ? AND longitude < ? AND despawn > ?' +
     ' AND pokemon_id in ( ' + pokemons.join(',') + ')' +
     ' ORDER BY ((latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?)) ASC' +
     ' LIMIT 500',
-    req.query.min_latitude,
-    req.query.max_latitude,
-    req.query.min_longitude,
-    req.query.max_longitude,
-    timestamp,
-    center.latitude,
-    center.latitude,
-    center.longitude,
-    center.longitude,
-    function(err, rows) {
+    [
+      req.query.min_latitude,
+      req.query.max_latitude,
+      req.query.min_longitude,
+      req.query.max_longitude,
+      timestamp,
+      center.latitude,
+      center.latitude,
+      center.longitude,
+      center.longitude,
+    ],
+    function(err, rows, fields) {
+      if (err) {
+        throw err;
+      }
       var endTime = present();
       logger.log('debug', 'The response of Pokemons query is received from the DB.');
       logger.log('info', 'Pokemons query time spent: %d ms', endTime - startTime);
@@ -138,11 +155,11 @@ app.get('/pokemon.json', function(req, res) {
   }
   var startTime = present();
   logger.log('debug', 'Pokemon query is requested to the DB.');
-  db.all('SELECT *' +
+  db.query('SELECT *' +
     ' FROM ' + pokemon_table +
     ' WHERE id = ?',
-    id,
-    function(err, rows) {
+    [id],
+    function(err, rows, fields) {
       var endTime = present();
       logger.log('debug', 'The response of Pokemon query is received from the DB.');
       logger.log('info', 'Pokemon query time spent: %d ms', endTime - startTime);
@@ -158,6 +175,6 @@ app.listen(port, function() {
 
 process.on('SIGINT', function() {
   logger.log('info', 'SIGINT is received. Server is stopped.');
-  db.close();
+  db.end();
   process.exit();
 });
