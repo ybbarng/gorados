@@ -119,6 +119,7 @@ app.get('/pokemons.json', function(req, res) {
   logger.log('debug', 'Pokemons query is requested to the DB.');
   db.query('SELECT *' +
     ' FROM ' + pokemon_table +
+    ' USE INDEX (pokemon_dlatlng_idx)' +
     ' WHERE latitude >= ? AND latitude < ? AND longitude >= ? AND longitude < ? AND despawn > ?' +
     ' AND pokemon_id in ( ' + pokemons.join(',') + ')' +
     ' ORDER BY ((latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?)) ASC' +

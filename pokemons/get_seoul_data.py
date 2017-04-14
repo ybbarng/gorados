@@ -107,6 +107,7 @@ def save_pokemons(pokemons):
         INDEX {0}_latitude_idx (latitude),
         INDEX {0}_longitude_idx (longitude),
         INDEX {0}_despawn_idx (despawn)
+        INDEX {0}_dlatlng_idx (despawn, latitude, longitude)
     );
     '''.format(table_name));
 
