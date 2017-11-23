@@ -6,15 +6,6 @@ var present = require('present');
 var winston = require('winston');
 require('winston-daily-rotate-file');
 
-var db = mysql.createConnection({
-  host: 'localhost',
-  user: 'pokemongo',
-  password: 'YOUR_DB_PASSWORD',
-  database: 'pokemongo'
-});
-
-db.connect();
-
 var timeOffset = 9 * 60 * 60 * 1000;
 
 function timestamp() {
@@ -45,6 +36,39 @@ var logger = new (winston.Logger)({
     })
   ]
 });
+
+var db;
+
+// http://stackoverflow.com/questions/20210522/nodejs-mysql-error-connection-lost-the-server-closed-the-connection
+function connectDB() {
+  db = mysql.createConnection({
+    host: 'localhost',
+    user: 'pokemongo',
+    password: 'YOUR_DB_PASSWORD',
+    database: 'pokemongo'
+  });
+  db.connect(function(error) {
+    if (error) {
+      logger.log('debug', 'Error when connecting to db: ' + error);
+      logger.log('info', 'Try to reconnect 2 sec later.');
+      setTimeout(connectDB, 2000);
+    }
+  });
+
+  db.on('error', function(error) {
+    if (error) {
+      logger.log('DB error: ' + error);
+      if (error.code === 'PROTOCOL_CONNECTION_LOST') {
+        logger.log('info', 'The server closed connection. Try to reconnect');
+        connectDB();
+      } else {
+        throw error;
+      }
+    }
+  });
+}
+
+connectDB();
 
 var place_table = 'place';
 var pokemon_table = 'pokemon';
@@ -84,7 +108,9 @@ app.get('/places.json', function(req, res) {
     ],
     function(err, rows, fields) {
       if (err) {
-        throw err;
+        res.send([]);
+        console.log(err);
+        return;
       }
       var endTime = present();
       logger.log('debug', 'The response of Places query is received from the DB.');
@@ -137,7 +163,9 @@ app.get('/pokemons.json', function(req, res) {
     ],
     function(err, rows, fields) {
       if (err) {
-        throw err;
+        console.log(err);
+        res.send([]);
+        return;
       }
       var endTime = present();
       logger.log('debug', 'The response of Pokemons query is received from the DB.');
@@ -161,6 +189,11 @@ app.get('/pokemon.json', function(req, res) {
     ' WHERE id = ?',
     [id],
     function(err, rows, fields) {
+      if (err) {
+        console.log(err);
+        res.send([]);
+        return;
+      }
       var endTime = present();
       logger.log('debug', 'The response of Pokemon query is received from the DB.');
       logger.log('info', 'Pokemon query time spent: %d ms', endTime - startTime);
