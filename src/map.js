@@ -25,8 +25,12 @@ $(function () {
     Math.min(10, Math.max(Number.parseInt(Get.getUrlParameter("z")), 16)) ||
     defaultScale;
   let paramId = Get.getUrlParameter("id");
-  L.mapbox.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-  const map = new L.mapbox.Map("map", "mapbox.streets").setView(latLng, scale);
+  const map = L.map("map").setView(latLng, scale);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(map);
   L.control
     .locate({
       flyTo: false,
