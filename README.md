@@ -104,6 +104,21 @@ gorados/
 | `feature/pokemon` | 포켓몬 표시 기능 |
 | `feature/sample-for-display` | 전시용 시간 설정 |
 
+## Changelog
+
+| 시기 | 내용 |
+|---|---|
+| 2017.02 | 프로젝트 시작. 포케스탑 정보 수집, SQLite DB 구축, 다음지도 기반 클러스터링 지도 구현 |
+| 2017.02 | Mapbox(Leaflet) 기반 지도로 전환. 포켓몬 출현 위치 표시, 실시간 업데이트, 팝업 정보(IV, 기술, 남은 시간) 구현 |
+| 2017.02 | 카카오맵/구글맵 연동, OS별 딥링크 분기, 2세대 포켓몬 대응 |
+| 2017.03 | 포켓몬 필터(검색, 쿠키 저장), 상성표, 포켓몬 링크 공유 기능 추가 |
+| 2017.03 | 줌 레벨별 포켓몬 분류, 남은 시간에 따른 투명도 조절, 몬스터볼 throbber 구현 |
+| 2017.03 | gzip 압축, static 캐싱, Winston 로깅, Cloudflare 대응 등 서버 최적화 |
+| 2017.04 | SQLite → MySQL 전환, multi-column 인덱스로 쿼리 성능 개선 |
+| 2017.11 | 포트폴리오 전시용 정리. 고정 타임스탬프 설정, 미리보기 이미지 추가 |
+| 2026.02 | 포트폴리오용 더미 데이터 추가, README 작성 |
+| 2026.02 | 빌드 도구 모던화: gulp+browserify → Vite, yarn → pnpm, Express 5, Winston 3, Biome, Vitest 도입 |
+
 ## 라이선스
 
 MIT
