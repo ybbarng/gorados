@@ -1,84 +1,80 @@
-var Pokedex = require('./pokedex_korean.json');
+import Pokedex from "./pokedex_korean.json";
 
-var onApply = null;
-var filters = [];
-exports.initFilter = function(onApplyHandler) {
-  $('#filter-button a').click(onClickFilterButton);
-  $('#filter-apply').click(onClickFilterApply);
-  $('#filters').click(onClickFilters);
-  $('#filters-popup').click(onClickFiltersPopup);
-  $('#search').keyup(onSearch);
+let onApply = null;
+let filters = [];
+export function initFilter(onApplyHandler) {
+  $("#filter-button a").click(onClickFilterButton);
+  $("#filter-apply").click(onClickFilterApply);
+  $("#filters").click(onClickFilters);
+  $("#filters-popup").click(onClickFiltersPopup);
+  $("#search").keyup(onSearch);
   onApply = onApplyHandler;
   loadFilters();
-};
+}
 
-var initialized = false;
+let initialized = false;
 function onClickFilterButton() {
-  $('#filters').fadeToggle();
+  $("#filters").fadeToggle();
   if (!initialized) {
     initFilters();
   }
-};
+}
 
-var filter_max = 251;
+const filter_max = 251;
 function initFilters() {
-  var $pokemon_list = $('#filter-list');
-  for (var number in Pokedex) {
+  const $pokemon_list = $("#filter-list");
+  for (const number in Pokedex) {
     if (number * 1 > filter_max) {
       break;
     }
-    var $filter = $('<li class="filter">' +
-      '<input type="checkbox" id="checkbox_' + number + '" value="' + number + '"' + ((filters.indexOf(number) !== -1) ? ' checked' : '') + '>' +
-      '<label for="checkbox_' + number + '">' +
-      '<img src="static/images/pokemons/' + number + '.png' + '" alt="' + Pokedex[number] + '">' +
-      number + ': ' + Pokedex[number] +
-      '</label>' +
-      '</li>');
+    const $filter = $(
+      `<li class="filter"><input type="checkbox" id="checkbox_${number}" value="${number}"${filters.indexOf(number) !== -1 ? " checked" : ""}><label for="checkbox_${number}"><img src="static/images/pokemons/${number}.png" alt="${Pokedex[number]}">${number}: ${Pokedex[number]}</label></li>`,
+    );
     $pokemon_list.append($filter);
   }
-  $('.filter').on('touchstart', function() {
-    $(this).addClass('touch');
+  $(".filter").on("touchstart", function () {
+    $(this).addClass("touch");
   });
-  $('.filter').on('touchend', function() {
-    $(this).removeClass('touch');
+  $(".filter").on("touchend", function () {
+    $(this).removeClass("touch");
   });
   initialized = true;
 }
 
 function loadFilters() {
-  var cookie_filters = $.cookie('filters');
+  const cookie_filters = $.cookie("filters");
   if (cookie_filters) {
-    filters = cookie_filters.split(',');
+    filters = cookie_filters.split(",");
   }
 }
 
 function onClickFilterApply() {
   filters = [];
-  $('.filter input:checked').each(function() {
+  $(".filter input:checked").each(function () {
     filters.push(this.value);
   });
-  $.cookie('filters', filters);
+  $.cookie("filters", filters);
   if (onApply) {
     onApply();
   }
-  $('#filters').fadeOut();
+  $("#filters").fadeOut();
 }
 
-exports.getFilters = function() {
+export function getFilters() {
   return filters;
-};
+}
 
 function onClickFiltersPopup(e) {
   e.stopPropagation();
 }
 
 function onClickFilters() {
-  $('#filters').fadeOut();
+  $("#filters").fadeOut();
 }
 
 function onSearch() {
-  var inputValue = $('#search').val();
-  $('.filter label').each(function() {
+  const inputValue = $("#search").val();
+  $(".filter label").each(function () {
     if ($(this).text().indexOf(inputValue) > -1) {
       $(this).parent().show();
     } else {

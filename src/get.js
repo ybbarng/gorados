@@ -1,18 +1,18 @@
-var params = null;
+let params = null;
 
 function loadParams() {
-  var pageUrl = decodeURIComponent(window.location.search.substring(1));
-  var urlVariables = pageUrl.split('&');
+  const pageUrl = decodeURIComponent(window.location.search.substring(1));
+  const urlVariables = pageUrl.split("&");
   params = {};
-  for (var i = 0; i < urlVariables.length; i++) {
-    var param = urlVariables[i].split('=');
+  for (let i = 0; i < urlVariables.length; i++) {
+    const param = urlVariables[i].split("=");
     params[param[0]] = param[1] === undefined ? true : param[1];
   }
 }
 
-exports.getUrlParameter = function(param) {
+export function getUrlParameter(param) {
   if (params === null) {
     loadParams();
   }
   return params[param];
-};
+}

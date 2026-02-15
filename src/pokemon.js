@@ -1,106 +1,95 @@
-var Platform = require('platform');
-var platform = Platform.os.family;
+import Platform from "platform";
 
-var Pokedex = require('./pokedex_korean.json');
-var Moves = require('./pokemon_moves.json');
+import { calculateIvPerfection, calculateIvRank } from "./iv-utils";
+import Pokedex from "./pokedex_korean.json";
+import Moves from "./pokemon_moves.json";
 
-function calculateIvPerfection(attack, defence, stamina) {
-  return (Number(attack) + Number(defence) + Number(stamina)) / 45 * 100;
-}
-
-function calculateIvRank(iv_perfection) {
-  var ranks = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D', 'E'];
-  var perfections = [100, 95, 90, 80, 60, 40, 0];
-  for (var i = 0; i < perfections.length; i++) {
-    if (iv_perfection >= perfections[i]) {
-      return ranks[i];
-    }
-  }
-  return 'E';
-}
+const platform = Platform.os.family;
 
 function pad(n) {
-  return (n < 10 ? '0' : '') + n;
+  return (n < 10 ? "0" : "") + n;
 }
 
 // Pokemon Class
 function Pokemon(pokemon) {
-  this.id = pokemon['id'];
-  this.name = Pokedex[pokemon['pokemon_id']] || pokemon['pokemon_id'];
-  this.pokemon_id = pokemon['pokemon_id'];
-  if (pokemon['disguise'] === '1') {
-    this.pokemon_id = '132';
-    this.name = Pokedex[this.pokemon_id] + '(' + this.name + '(으)로 변신)';
+  this.id = pokemon.id;
+  this.name = Pokedex[pokemon.pokemon_id] || pokemon.pokemon_id;
+  this.pokemon_id = pokemon.pokemon_id;
+  if (pokemon.disguise === "1") {
+    this.pokemon_id = "132";
+    this.name = `${Pokedex[this.pokemon_id]}(${this.name}(으)로 변신)`;
   }
-  this.latitude = pokemon['latitude'];
-  this.longitude = pokemon['longitude'];
-  this.despawn = Number(pokemon['despawn']);
-  this.disguise = pokemon['disguise'];
-  this.attack = Number(pokemon['attack']);
-  this.defence = Number(pokemon['defence']);
-  this.stamina = Number(pokemon['stamina']);
-  this.move1 = pokemon['move1'];
-  this.move2 = pokemon['move2'];
-  this.move1Str = Moves[pokemon['move1']] || pokemon['move1'];
-  this.move2Str = Moves[pokemon['move2']] || pokemon['move2'];
-  this.perfection = calculateIvPerfection(this.attack, this.defence, this.stamina);
+  this.latitude = pokemon.latitude;
+  this.longitude = pokemon.longitude;
+  this.despawn = Number(pokemon.despawn);
+  this.disguise = pokemon.disguise;
+  this.attack = Number(pokemon.attack);
+  this.defence = Number(pokemon.defence);
+  this.stamina = Number(pokemon.stamina);
+  this.move1 = pokemon.move1;
+  this.move2 = pokemon.move2;
+  this.move1Str = Moves[pokemon.move1] || pokemon.move1;
+  this.move2Str = Moves[pokemon.move2] || pokemon.move2;
+  this.perfection = calculateIvPerfection(
+    this.attack,
+    this.defence,
+    this.stamina,
+  );
   this.perfectionStr = this.perfection.toFixed(1);
   this.rank = calculateIvRank(this.perfection);
 }
 
-Pokemon.prototype.setMarker = function(marker) {
+Pokemon.prototype.setMarker = function (marker) {
   this.marker = marker;
 };
 
-Pokemon.prototype.getRemainTime = function(_now) {
-  var now = _now || Date.now() / 1000;
+Pokemon.prototype.getRemainTime = function (_now) {
+  const now = _now || Date.now() / 1000;
   return this.despawn - now;
 };
 
-Pokemon.prototype.getRemainTimeStr = function(now) {
-  var delta = this.getRemainTime(now);
-  var despawnStr = '';
+Pokemon.prototype.getRemainTimeStr = function (now) {
+  const delta = this.getRemainTime(now);
+  let despawnStr = "";
   if (delta > 0) {
-    despawnStr = pad(parseInt(delta / 60)) + ':' + pad(parseInt(delta % 60));
+    despawnStr = `${pad(Number.parseInt(delta / 60))}:${pad(Number.parseInt(delta % 60))}`;
   } else {
-    despawnStr = '사라졌습니다.';
+    despawnStr = "사라졌습니다.";
   }
   return despawnStr;
 };
 
-Pokemon.prototype.getOpacity = function(now, dehighlight) {
+Pokemon.prototype.getOpacity = function (now, dehighlight) {
   if (!dehighlight) {
-    if (this.marker && this.marker.getPopup().isOpen()) {
+    if (this.marker?.getPopup().isOpen()) {
       return 1;
     }
   }
-  var diff = this.getRemainTime(1491960000);
-  var opacity = diff / 60 / 30 * 0.5 + 0.5;
+  const diff = this.getRemainTime(1491960000);
+  const opacity = (diff / 60 / 30) * 0.5 + 0.5;
   return opacity;
 };
 
-Pokemon.prototype.getLatLng = function() {
+Pokemon.prototype.getLatLng = function () {
   return [this.latitude, this.longitude];
 };
 
 function getMapDom(href, imageSrc, newTap) {
-  var newTapStr = '';
+  let newTapStr = "";
   if (newTap) {
     newTapStr = ' target="_blank"';
   }
-  return '<a href="' + href + '"' + newTapStr + ' class="map-app-icon-wrapper">' +
-    '<image src="' + imageSrc + '" class="map-app-icon">' +
-    '</a>';
+  return `<a href="${href}"${newTapStr} class="map-app-icon-wrapper"><image src="${imageSrc}" class="map-app-icon"></a>`;
 }
 
 function getKakaoMap(latitude, longitude) {
-  var imageSrc = 'static/images/maps/kakao-map.png';
-  var href = '';
-  var hrefs = {
-    desktop: 'http://map.daum.net/?q=' + latitude + ',' + longitude,
-    mobile: 'daummaps://route?ep=' + latitude + ',' + longitude + '&by=CAR'
+  const imageSrc = "static/images/maps/kakao-map.png";
+  let href = "";
+  const hrefs = {
+    desktop: `http://map.daum.net/?q=${latitude},${longitude}`,
+    mobile: `daummaps://route?ep=${latitude},${longitude}&by=CAR`,
   };
-  if (['Android', 'iOS'].indexOf(platform) !== -1) {
+  if (["Android", "iOS"].indexOf(platform) !== -1) {
     href = hrefs.mobile;
   } else {
     href = hrefs.desktop;
@@ -109,13 +98,13 @@ function getKakaoMap(latitude, longitude) {
 }
 
 function getGoogleMap(latitude, longitude, label) {
-  var imageSrc = 'static/images/maps/google-map.png';
-  var hrefs = {
-    desktop: 'https://www.google.co.kr/maps/place/' + latitude + ',' + longitude,
-    Android: 'geo:?q=' + latitude + ',' + longitude + '(' + label + ')',
-    iOS: 'comgooglemaps://?q=' + latitude + ',' + longitude
+  const imageSrc = "static/images/maps/google-map.png";
+  const hrefs = {
+    desktop: `https://www.google.co.kr/maps/place/${latitude},${longitude}`,
+    Android: `geo:?q=${latitude},${longitude}(${label})`,
+    iOS: `comgooglemaps://?q=${latitude},${longitude}`,
   };
-  var href = hrefs.desktop;
+  let href = hrefs.desktop;
   if (hrefs[platform]) {
     href = hrefs[platform];
   }
@@ -123,33 +112,22 @@ function getGoogleMap(latitude, longitude, label) {
 }
 
 function getMapLinks(latitude, longitude, label) {
-  var kakaoMap = getKakaoMap(latitude, longitude);
-  var googleMap = getGoogleMap(latitude, longitude, label);
-  return '<div class="map-apps">' + kakaoMap + googleMap + '</div>';
+  const kakaoMap = getKakaoMap(latitude, longitude);
+  const googleMap = getGoogleMap(latitude, longitude, label);
+  return `<div class="map-apps">${kakaoMap}${googleMap}</div>`;
 }
 
 function getMoveLinkText(move, moveName) {
-  return '<a href="http://pokemongo.inven.co.kr/dataninfo/move/detail.php?code=' + move + '" target="_blank" title="\'' + moveName + '\' 기술 자세히 알아보기">' + moveName + '</a>';
+  return `<a href="http://pokemongo.inven.co.kr/dataninfo/move/detail.php?code=${move}" target="_blank" title="\'${moveName}' 기술 자세히 알아보기\">${moveName}</a>`;
 }
 
-Pokemon.prototype.getLinkText = function() {
-  return '<a href="?id=' + this.id + '&p=' + this.latitude + ',' + this.longitude + '&z=12" class="get-link" title="링크 얻기"><img src="/static/images/get_link.png"></a>';
-}
-
-Pokemon.prototype.getPopupContents = function() {
-  var despawnStr = this.getRemainTimeStr(1491960000);
-  return '<h2>' + this.name +
-      '<a href="http://pokemongo.inven.co.kr/dataninfo/pokemon/detail.php?code=' + this.pokemon_id + '" class="pokedex-wrapper" target="_blank" title="포켓몬도감에서 보기">' +
-        '<img class="pokedex" src="/static/images/pokedex.png" alt="포켓몬도감에서 보기">' +
-        '<img class="pokedex-pokemon-image" src="/static/images/pokemons/' + this.pokemon_id + '.png">' +
-      '</a>' +
-    '</h2> ' +
-    this.getLinkText() +
-    '<b>개체치</b>: ' + this.rank + ' (' + this.perfectionStr + '%: ' + this.attack + '/' + this.defence + '/' + this.stamina + ')<br>' +
-    '<b>남은 시간</b>: <span class="despawn">' + despawnStr + '</span><br>' +
-    '<b>기술</b>: ' + getMoveLinkText(this.move1, this.move1Str) + '/' + getMoveLinkText(this.move2, this.move2Str) + '<br>' +
-    'disguise: ' + this.disguise + '<br>' +
-    getMapLinks(this.latitude, this.longitude, this.name);
+Pokemon.prototype.getLinkText = function () {
+  return `<a href="?id=${this.id}&p=${this.latitude},${this.longitude}&z=12" class="get-link" title="링크 얻기"><img src="/static/images/get_link.png"></a>`;
 };
 
-module.exports = Pokemon;
+Pokemon.prototype.getPopupContents = function () {
+  const despawnStr = this.getRemainTimeStr(1491960000);
+  return `<h2>${this.name}<a href="http://pokemongo.inven.co.kr/dataninfo/pokemon/detail.php?code=${this.pokemon_id}" class="pokedex-wrapper" target="_blank" title="포켓몬도감에서 보기"><img class="pokedex" src="/static/images/pokedex.png" alt="포켓몬도감에서 보기"><img class="pokedex-pokemon-image" src="/static/images/pokemons/${this.pokemon_id}.png"></a></h2> ${this.getLinkText()}<b>개체치</b>: ${this.rank} (${this.perfectionStr}%: ${this.attack}/${this.defence}/${this.stamina})<br><b>남은 시간</b>: <span class="despawn">${despawnStr}</span><br><b>기술</b>: ${getMoveLinkText(this.move1, this.move1Str)}/${getMoveLinkText(this.move2, this.move2Str)}<br>disguise: ${this.disguise}<br>${getMapLinks(this.latitude, this.longitude, this.name)}`;
+};
+
+export default Pokemon;

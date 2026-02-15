@@ -14,10 +14,13 @@
 
 ## 기술 스택
 
-- **Backend**: Node.js, Express, SQLite3
+- **Backend**: Node.js, Express 5, SQLite3
 - **Frontend**: jQuery, Mapbox.js (Leaflet 기반)
-- **Build**: Gulp, Browserify, Babel
-- **Logging**: Winston (일별 로그 로테이션)
+- **Build**: Vite
+- **Test**: Vitest
+- **Lint/Format**: Biome
+- **Logging**: Winston 3 (일별 로그 로테이션)
+- **Package Manager**: pnpm
 
 ## 설치 및 실행
 
@@ -30,7 +33,7 @@
 
 1. 의존성 설치:
    ```bash
-   yarn install
+   pnpm install
    ```
 
 2. 환경 변수 설정 - 프로젝트 루트에 `.env` 파일 생성:
@@ -40,12 +43,12 @@
 
 3. Mapbox token을 소스에 반영 후 프론트엔드 빌드:
    ```bash
-   npx gulp
+   pnpm build
    ```
 
 4. 서버 실행:
    ```bash
-   node index.js
+   pnpm start
    ```
 
 5. 브라우저에서 `http://localhost:12026` 접속
@@ -57,14 +60,18 @@ gorados/
 ├── index.js              # Express 서버 (API 엔드포인트)
 ├── data.db               # SQLite DB (포케스탑/체육관/포켓몬 더미 데이터)
 ├── classification.json   # 줌 레벨별 포켓몬 분류 기준
-├── gulpfile.js           # Gulp 빌드 설정
+├── vite.config.js        # Vite 빌드 설정
+├── biome.json            # Biome 린트/포맷 설정
 ├── package.json
 ├── src/                  # 프론트엔드 소스
 │   ├── map.js            # 메인 지도 로직
-│   ├── pokemon.js        # 포켓몬 클래스 (IV 계산, 팝업 등)
+│   ├── pokemon.js        # 포켓몬 클래스 (팝업 등)
+│   ├── iv-utils.js       # IV 계산 유틸리티
 │   ├── filter.js         # 포켓몬 필터 UI
 │   ├── type-chart.js     # 상성표 UI
 │   └── ...
+├── tests/                # 테스트
+│   └── pokemon.test.js
 ├── app/                  # 정적 파일 (HTML, CSS, 빌드된 JS)
 │   ├── index.html
 │   ├── css/

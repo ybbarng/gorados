@@ -1,15 +1,15 @@
-exports.init = function() {
-  $('#type-chart-button a').click(onClickTypeChartButton);
-  $('#type-chart').click(onClickTypeChart);
-  $('#type-chart-popup').click(onClickTypeChartPopup);
-};
+export function init() {
+  $("#type-chart-button a").click(onClickTypeChartButton);
+  $("#type-chart").click(onClickTypeChart);
+  $("#type-chart-popup").click(onClickTypeChartPopup);
+}
 
 function onClickTypeChartButton() {
-  $('#type-chart').fadeToggle();
+  $("#type-chart").fadeToggle();
 }
 
 function onClickTypeChart() {
-  $('#type-chart').fadeOut();
+  $("#type-chart").fadeOut();
 }
 
 function onClickTypeChartPopup(e) {
