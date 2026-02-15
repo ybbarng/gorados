@@ -168,4 +168,4 @@ since_*.json
 response.txt
 app/js/map.js
 
-data.db
+data_backup.db
