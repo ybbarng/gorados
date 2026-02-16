@@ -2,7 +2,7 @@
   "name": "gorados",
   "version": "1.0.0",
   "author": "ybbarng <ybbarng@gmail.com>",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "packageManager": "pnpm@10.2.1",
   "dependencies": {
     "platform": "^1.3.6"
