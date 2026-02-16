@@ -1,4 +1,5 @@
 import Pokemon from "./pokemon";
+import * as Spawner from "./spawner";
 import * as Utils from "./utils";
 
 import Platform from "platform";
@@ -13,7 +14,15 @@ const platform = Platform.os.family;
 const defaultLatLng = [37.475533, 126.964645];
 const defaultScale = 16;
 
-$(function () {
+let places = null;
+
+async function loadData() {
+  const response = await fetch("data/places.json");
+  places = await response.json();
+}
+
+$(async function () {
+  await loadData();
   Filter.initFilter(updatePokemons.bind(this, false, true));
   TypeChart.init();
   let paramLatLng = Get.getUrlParameter("p");
@@ -24,7 +33,6 @@ $(function () {
   const scale =
     Math.min(10, Math.max(Number.parseInt(Get.getUrlParameter("z")), 16)) ||
     defaultScale;
-  let paramId = Get.getUrlParameter("id");
   const map = L.map("map").setView(latLng, scale);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
@@ -78,9 +86,7 @@ $(function () {
       return;
     }
     if (selectedMarker.pokemon) {
-      $("span.despawn").text(
-        selectedMarker.pokemon.getRemainTimeStr(1491960000),
-      );
+      $("span.despawn").text(selectedMarker.pokemon.getRemainTimeStr());
     }
   }
 
@@ -146,21 +152,12 @@ $(function () {
             map.removeLayer(newMarker);
           }, 1000);
         }
-        if (i === 0) {
-          if (paramId && paramId === pokemon.id) {
+        if (i === 0 && paramLatLng) {
+          const pLatLng = pokemon.getLatLng();
+          if (pLatLng[0] === paramLatLng[0] && pLatLng[1] === paramLatLng[1]) {
             marker.fireEvent("click");
-            paramId = null;
-            paramLatLng = null;
-          } else if (paramLatLng) {
-            const pLatLng = pokemon.getLatLng();
-            if (
-              pLatLng[0] === paramLatLng[0] &&
-              pLatLng[1] === paramLatLng[1]
-            ) {
-              marker.fireEvent("click");
-            }
-            paramLatLng = null;
           }
+          paramLatLng = null;
         }
       }
     });
@@ -174,25 +171,17 @@ $(function () {
     updatePokemonsFlag = true;
     Throbber.showThrobber();
     const bounds = Utils.boundsWithPadding(map.getBounds(), 1);
-    const params = {
-      min_latitude: bounds._southWest.lat,
-      max_latitude: bounds._northEast.lat,
-      min_longitude: bounds._southWest.lng,
-      max_longitude: bounds._northEast.lng,
-      zoom_level: map.getZoom(),
-      filters: Filter.getFilters().join(","),
-    };
-    $.get("pokemons.json", params, (pokemons) => {
-      removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
-      addPokemons(pokemons, bounds, forceClear, newNotification);
-      Throbber.hideThrobber();
-      updatePokemonsFlag = false;
-    });
-    if (paramId !== null) {
-      $.get("pokemon.json", { id: paramId }, (pokemons) => {
-        addPokemons(pokemons, bounds, forceClear, false, paramId);
-      });
-    }
+    const pokemons = Spawner.generatePokemonsInBounds(
+      places,
+      bounds,
+      map.getZoom(),
+      Filter.getFilters(),
+      Date.now(),
+    );
+    removeMarkersOutOfBounds(pokemonMarkers, bounds, forceClear);
+    addPokemons(pokemons, bounds, forceClear, newNotification);
+    Throbber.hideThrobber();
+    updatePokemonsFlag = false;
   }
   /* pokemon marker end */
 
@@ -222,37 +211,32 @@ $(function () {
     }
     Throbber.showThrobber();
     updatePlacesFlag = true;
-    const params = {
-      min_latitude: bounds._southWest.lat,
-      max_latitude: bounds._northEast.lat,
-      min_longitude: bounds._southWest.lng,
-      max_longitude: bounds._northEast.lng,
-    };
-    $.get("places.json", params, (places) => {
-      removeMarkersOutOfBounds(placeMarkers, bounds);
-      if (map.getZoom() <= placeInvisibleZoom) {
-        return;
-      }
-      $.each(places, (i, place) => {
-        const id = place.id;
-        let placeMarker = placeMarkerTempletes[place.type];
-        if (placeMarker === undefined) {
-          placeMarker = new PlaceMarker({
-            iconUrl: `static/images/places/${place.type}.png`,
-          });
-          placeMarkerTempletes[place.type] = placeMarker;
-        }
-        const marker = new L.marker([place.latitude, place.longitude], {
-          icon: placeMarker,
-        });
-        if (!placeMarkers.has(id)) {
-          map.addLayer(marker);
-          placeMarkers.set(id, marker);
-        }
-      });
+    const placesInBounds = Spawner.getPlacesInBounds(places, bounds);
+    removeMarkersOutOfBounds(placeMarkers, bounds);
+    if (map.getZoom() <= placeInvisibleZoom) {
       Throbber.hideThrobber();
       updatePlacesFlag = false;
+      return;
+    }
+    $.each(placesInBounds, (i, place) => {
+      const id = place.id;
+      let placeMarker = placeMarkerTempletes[place.type];
+      if (placeMarker === undefined) {
+        placeMarker = new PlaceMarker({
+          iconUrl: `static/images/places/${place.type}.png`,
+        });
+        placeMarkerTempletes[place.type] = placeMarker;
+      }
+      const marker = new L.marker([place.latitude, place.longitude], {
+        icon: placeMarker,
+      });
+      if (!placeMarkers.has(id)) {
+        map.addLayer(marker);
+        placeMarkers.set(id, marker);
+      }
     });
+    Throbber.hideThrobber();
+    updatePlacesFlag = false;
   }
 
   function updatePokemonsInMap() {

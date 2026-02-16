@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { generatePokemonsInBounds, getPlacesInBounds, spawnAt } from "../src/spawner";
+import {
+  generatePokemonsInBounds,
+  getPlacesInBounds,
+  spawnAt,
+} from "../src/spawner";
 
 describe("spawnAt", () => {
   const placeIndex = 100;
@@ -20,7 +24,9 @@ describe("spawnAt", () => {
       const p1 = spawnAt(100, lat, lng, 1700000000 + t);
       const p2 = spawnAt(200, lat, lng, 1700000000 + t);
       if (p1 && p2) {
-        expect(p1.pokemon_id !== p2.pokemon_id || p1.attack !== p2.attack).toBe(true);
+        expect(p1.pokemon_id !== p2.pokemon_id || p1.attack !== p2.attack).toBe(
+          true,
+        );
         found = true;
       }
     }
@@ -100,9 +106,19 @@ describe("generatePokemonsInBounds", () => {
   it("최대 500개 제한을 준수한다", () => {
     const largePlaces = [];
     for (let i = 0; i < 2000; i++) {
-      largePlaces.push([37.47 + (i % 100) * 0.001, 126.96 + Math.floor(i / 100) * 0.001, 0]);
+      largePlaces.push([
+        37.47 + (i % 100) * 0.001,
+        126.96 + Math.floor(i / 100) * 0.001,
+        0,
+      ]);
     }
-    const result = generatePokemonsInBounds(largePlaces, bounds, 16, [], Date.now());
+    const result = generatePokemonsInBounds(
+      largePlaces,
+      bounds,
+      16,
+      [],
+      Date.now(),
+    );
     expect(result.length).toBeLessThanOrEqual(500);
   });
 
@@ -122,7 +138,13 @@ describe("generatePokemonsInBounds", () => {
       _southWest: { lat: 37.469, lng: 126.959 },
       _northEast: { lat: 37.472, lng: 126.962 },
     };
-    const result = generatePokemonsInBounds(places, narrowBounds, 16, [], 1700000000000);
+    const result = generatePokemonsInBounds(
+      places,
+      narrowBounds,
+      16,
+      [],
+      1700000000000,
+    );
     for (const p of result) {
       expect(p.latitude).toBeGreaterThanOrEqual(narrowBounds._southWest.lat);
       expect(p.latitude).toBeLessThanOrEqual(narrowBounds._northEast.lat);
@@ -134,7 +156,7 @@ describe("getPlacesInBounds", () => {
   const places = [
     [37.47, 126.96, 0], // pokestop
     [37.48, 126.97, 1], // gym
-    [37.50, 126.98, 2], // 7-eleven
+    [37.5, 126.98, 2], // 7-eleven
   ];
 
   const bounds = {

@@ -29,7 +29,9 @@
       "pokemons",
       "hash_test",
       "*.csv",
-      "*.sql"
+      "*.sql",
+      "data/",
+      "scripts/"
     ]
   }
 }

@@ -26,7 +26,9 @@ function getSpawnOffset(placeIndex) {
 function getSpawnDuration(placeIndex, cycleNumber) {
   const rng = mulberry32(hashSeed(placeIndex, cycleNumber + 0xd0aaaa));
   return (
-    (MIN_DURATION_MINUTES + Math.floor(rng() * (MAX_DURATION_MINUTES - MIN_DURATION_MINUTES + 1))) * 60
+    (MIN_DURATION_MINUTES +
+      Math.floor(rng() * (MAX_DURATION_MINUTES - MIN_DURATION_MINUTES + 1))) *
+    60
   );
 }
 
@@ -59,7 +61,7 @@ export function spawnAt(placeIndex, lat, lng, now) {
   }
 
   const disguise = rng() < DISGUISE_CHANCE ? "1" : "0";
-  const despawn = (cycleNumber * CYCLE_SECONDS + offset + duration);
+  const despawn = cycleNumber * CYCLE_SECONDS + offset + duration;
 
   return {
     id: `${placeIndex}_${cycleNumber}`,
@@ -110,7 +112,10 @@ export function generatePokemonsInBounds(places, bounds, zoom, filters, now) {
     const pokemon = spawnAt(i, lat, lng, nowSeconds);
     if (!pokemon) continue;
 
-    if (!visibleSet.has(pokemon.pokemon_id) && !filterSet.has(pokemon.pokemon_id)) {
+    if (
+      !visibleSet.has(pokemon.pokemon_id) &&
+      !filterSet.has(pokemon.pokemon_id)
+    ) {
       continue;
     }
 
