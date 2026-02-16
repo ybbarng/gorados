@@ -65,9 +65,9 @@ Pokemon.prototype.getOpacity = function (now, dehighlight) {
       return 1;
     }
   }
-  const diff = this.getRemainTime(1491960000);
+  const diff = this.getRemainTime(now);
   const opacity = (diff / 60 / 30) * 0.5 + 0.5;
-  return opacity;
+  return Math.max(0, Math.min(1, opacity));
 };
 
 Pokemon.prototype.getLatLng = function () {
@@ -122,11 +122,11 @@ function getMoveLinkText(move, moveName) {
 }
 
 Pokemon.prototype.getLinkText = function () {
-  return `<a href="?id=${this.id}&p=${this.latitude},${this.longitude}&z=12" class="get-link" title="링크 얻기"><img src="/static/images/get_link.png"></a>`;
+  return `<a href="?p=${this.latitude},${this.longitude}&z=16" class="get-link" title="링크 얻기"><img src="static/images/get_link.png"></a>`;
 };
 
 Pokemon.prototype.getPopupContents = function () {
-  const despawnStr = this.getRemainTimeStr(1491960000);
+  const despawnStr = this.getRemainTimeStr();
   return `<h2>${this.name}<a href="http://pokemongo.inven.co.kr/dataninfo/pokemon/detail.php?code=${this.pokemon_id}" class="pokedex-wrapper" target="_blank" title="포켓몬도감에서 보기"><img class="pokedex" src="/static/images/pokedex.png" alt="포켓몬도감에서 보기"><img class="pokedex-pokemon-image" src="/static/images/pokemons/${this.pokemon_id}.png"></a></h2> ${this.getLinkText()}<b>개체치</b>: ${this.rank} (${this.perfectionStr}%: ${this.attack}/${this.defence}/${this.stamina})<br><b>남은 시간</b>: <span class="despawn">${despawnStr}</span><br><b>기술</b>: ${getMoveLinkText(this.move1, this.move1Str)}/${getMoveLinkText(this.move2, this.move2Str)}<br>disguise: ${this.disguise}<br>${getMapLinks(this.latitude, this.longitude, this.name)}`;
 };
 
