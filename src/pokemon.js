@@ -127,7 +127,7 @@ Pokemon.prototype.getLinkText = function () {
 
 Pokemon.prototype.getPopupContents = function () {
   const despawnStr = this.getRemainTimeStr();
-  return `<h2>${this.name}<a href="http://pokemongo.inven.co.kr/dataninfo/pokemon/detail.php?code=${this.pokemon_id}" class="pokedex-wrapper" target="_blank" title="포켓몬도감에서 보기"><img class="pokedex" src="/static/images/pokedex.png" alt="포켓몬도감에서 보기"><img class="pokedex-pokemon-image" src="/static/images/pokemons/${this.pokemon_id}.png"></a></h2> ${this.getLinkText()}<b>개체치</b>: ${this.rank} (${this.perfectionStr}%: ${this.attack}/${this.defence}/${this.stamina})<br><b>남은 시간</b>: <span class="despawn">${despawnStr}</span><br><b>기술</b>: ${getMoveLinkText(this.move1, this.move1Str)}/${getMoveLinkText(this.move2, this.move2Str)}<br>disguise: ${this.disguise}<br>${getMapLinks(this.latitude, this.longitude, this.name)}`;
+  return `<h2>${this.name}<a href="http://pokemongo.inven.co.kr/dataninfo/pokemon/detail.php?code=${this.pokemon_id}" class="pokedex-wrapper" target="_blank" title="포켓몬도감에서 보기"><img class="pokedex" src="static/images/pokedex.png" alt="포켓몬도감에서 보기"><img class="pokedex-pokemon-image" src="static/images/pokemons/${this.pokemon_id}.png"></a></h2> ${this.getLinkText()}<b>개체치</b>: ${this.rank} (${this.perfectionStr}%: ${this.attack}/${this.defence}/${this.stamina})<br><b>남은 시간</b>: <span class="despawn">${despawnStr}</span><br><b>기술</b>: ${getMoveLinkText(this.move1, this.move1Str)}/${getMoveLinkText(this.move2, this.move2Str)}<br>disguise: ${this.disguise}<br>${getMapLinks(this.latitude, this.longitude, this.name)}`;
 };
 
 export default Pokemon;
