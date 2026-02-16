@@ -1,8 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
+  "$schema": "https://biomejs.dev/schemas/2.4.0/schema.json",
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
@@ -18,21 +16,23 @@
     "globals": ["$", "L"]
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "app/js/map.js",
-      "app/css",
-      "*.min.js",
-      "*.min.css",
-      "data.db",
-      "pnpm-lock.yaml",
-      "pokemons",
-      "hash_test",
-      "*.csv",
-      "*.sql",
-      "data/",
-      "scripts/",
-      "dist/"
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/app/js/map.js",
+      "!**/app/css",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/data.db",
+      "!**/pnpm-lock.yaml",
+      "!**/pokemons",
+      "!**/hash_test",
+      "!**/*.csv",
+      "!**/*.sql",
+      "!**/data",
+      "!**/scripts",
+      "!**/dist",
+      "!**/server"
     ]
   }
 }

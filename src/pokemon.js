@@ -52,7 +52,7 @@ Pokemon.prototype.getRemainTimeStr = function (now) {
   const delta = this.getRemainTime(now);
   let despawnStr = "";
   if (delta > 0) {
-    despawnStr = `${pad(Number.parseInt(delta / 60))}:${pad(Number.parseInt(delta % 60))}`;
+    despawnStr = `${pad(Number.parseInt(delta / 60, 10))}:${pad(Number.parseInt(delta % 60, 10))}`;
   } else {
     despawnStr = "사라졌습니다.";
   }
@@ -118,7 +118,7 @@ function getMapLinks(latitude, longitude, label) {
 }
 
 function getMoveLinkText(move, moveName) {
-  return `<a href="http://pokemongo.inven.co.kr/dataninfo/move/detail.php?code=${move}" target="_blank" title="\'${moveName}' 기술 자세히 알아보기\">${moveName}</a>`;
+  return `<a href="http://pokemongo.inven.co.kr/dataninfo/move/detail.php?code=${move}" target="_blank" title="'${moveName}' 기술 자세히 알아보기">${moveName}</a>`;
 }
 
 Pokemon.prototype.getLinkText = function () {

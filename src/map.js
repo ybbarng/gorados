@@ -1,15 +1,13 @@
-import Pokemon from "./pokemon";
-import * as Spawner from "./spawner";
-import * as Utils from "./utils";
-
 import Platform from "platform";
-
 import * as Filter from "./filter";
 import * as Get from "./get";
+import Pokemon from "./pokemon";
+import * as Spawner from "./spawner";
 import * as Throbber from "./throbber";
 import * as TypeChart from "./type-chart";
+import * as Utils from "./utils";
 
-const platform = Platform.os.family;
+const _platform = Platform.os.family;
 
 const defaultLatLng = [37.475533, 126.964645];
 const defaultScale = 16;
@@ -33,8 +31,10 @@ $(function () {
       }
       const latLng = paramLatLng || defaultLatLng;
       const scale =
-        Math.min(10, Math.max(Number.parseInt(Get.getUrlParameter("z")), 16)) ||
-        defaultScale;
+        Math.min(
+          16,
+          Math.max(Number.parseInt(Get.getUrlParameter("z"), 10), 10),
+        ) || defaultScale;
       const map = L.map("map").setView(latLng, scale);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
@@ -113,7 +113,7 @@ $(function () {
 
       const pokemonMarkers = new Map();
 
-      function addPokemons(pokemons, bounds, forceClear, newNotification) {
+      function addPokemons(pokemons, _bounds, _forceClear, newNotification) {
         const now = Date.now() / 1000;
         $.each(pokemons, (i, pokemonData) => {
           const pokemon = new Pokemon(pokemonData);
@@ -142,7 +142,7 @@ $(function () {
             );
             // The popup will be open automatically by the default event listener
           });
-          marker.addEventListener("dblclick", (e) => {
+          marker.addEventListener("dblclick", (_e) => {
             // To prevent the map from being moved when a marker is double-clicked
           });
           if (!pokemonMarkers.has(id)) {
@@ -227,7 +227,7 @@ $(function () {
           updatePlacesFlag = false;
           return;
         }
-        $.each(placesInBounds, (i, place) => {
+        $.each(placesInBounds, (_i, place) => {
           const id = place.id;
           let placeMarker = placeMarkerTempletes[place.type];
           if (placeMarker === undefined) {
@@ -251,7 +251,7 @@ $(function () {
       function updatePokemonsInMap() {
         const now = Date.now() / 1000;
         const bounds = map.getBounds();
-        pokemonMarkers.forEach((marker, id, _) => {
+        pokemonMarkers.forEach((marker, _id, _) => {
           if (!bounds.contains(marker.getLatLng())) {
             return;
           }
