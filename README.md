@@ -1,10 +1,10 @@
 # GORADOS
 
-포켓몬고 실시간 위치 지도 서비스입니다. 서울 지역의 포켓몬 출현 위치, 포케스탑, 체육관 정보를 Leaflet + OpenStreetMap 기반 지도 위에 표시합니다.
+포켓몬고 실시간 위치 지도 서비스입니다. 서울 지역의 포케스탑, 체육관 위치와 시드 기반 PRNG로 생성된 포켓몬을 Leaflet + OpenStreetMap 기반 지도 위에 표시합니다. 서버 없이 정적 사이트로 동작합니다.
 
 ## 주요 기능
 
-- **실시간 포켓몬 지도**: 포켓몬 출현 위치를 지도에 마커로 표시
+- **실시간 포켓몬 지도**: 시드 기반 PRNG로 30분 주기 포켓몬 생성, 결정론적 출현/소멸
 - **포케스탑/체육관 표시**: 줌 레벨에 따라 주변 포케스탑과 체육관 표시
 - **포켓몬 상세 정보**: 개체치(IV), 기술, 남은 시간 등 팝업으로 확인
 - **포켓몬 필터**: 특정 포켓몬만 표시하도록 필터링
@@ -14,12 +14,11 @@
 
 ## 기술 스택
 
-- **Backend**: Node.js, Express 5, SQLite3
 - **Frontend**: jQuery, Leaflet + OpenStreetMap
-- **Build**: Vite
+- **Build**: Vite (IIFE 번들)
 - **Test**: Vitest
 - **Lint/Format**: Biome
-- **Logging**: Winston 3 (일별 로그 로테이션)
+- **Deploy**: GitHub Actions → GitHub Pages
 - **Package Manager**: pnpm
 
 ## 설치 및 실행
@@ -27,6 +26,7 @@
 ### 사전 요구사항
 
 - Node.js
+- pnpm
 
 ### 설정
 
@@ -35,73 +35,73 @@
    pnpm install
    ```
 
-2. 프론트엔드 빌드:
+2. 빌드:
    ```bash
    pnpm build
    ```
 
-4. 서버 실행:
+3. 로컬 프리뷰:
    ```bash
-   pnpm start
+   pnpm preview
    ```
 
-5. 브라우저에서 `http://localhost:12026` 접속
+### 개발 모드
+
+```bash
+pnpm dev   # Vite watch 모드 (src/ 변경 시 자동 빌드)
+```
 
 ## 프로젝트 구조
 
 ```
 gorados/
-├── index.js              # Express 서버 (API 엔드포인트)
-├── data.db               # SQLite DB (포케스탑/체육관/포켓몬 더미 데이터)
-├── classification.json   # 줌 레벨별 포켓몬 분류 기준
-├── vite.config.js        # Vite 빌드 설정
-├── biome.json            # Biome 린트/포맷 설정
-├── package.json
 ├── src/                  # 프론트엔드 소스
 │   ├── map.js            # 메인 지도 로직
 │   ├── pokemon.js        # 포켓몬 클래스 (팝업 등)
+│   ├── spawner.js        # 시드 PRNG 기반 포켓몬 생성
+│   ├── prng.js           # mulberry32 PRNG 및 헬퍼
 │   ├── iv-utils.js       # IV 계산 유틸리티
 │   ├── filter.js         # 포켓몬 필터 UI
 │   ├── type-chart.js     # 상성표 UI
 │   └── ...
+├── data/                 # 정적 데이터
+│   ├── places.json       # 스폰 포인트 15,217개
+│   └── move-pools.json   # 종별 기술풀 (251종)
+├── classification.json   # 줌 레벨별 포켓몬 분류 기준
 ├── tests/                # 테스트
-│   └── pokemon.test.js
-├── app/                  # 정적 파일 (HTML, CSS, 빌드된 JS)
+│   ├── pokemon.test.js
+│   ├── prng.test.js
+│   └── spawner.test.js
+├── app/                  # 정적 파일 (HTML, CSS)
 │   ├── index.html
 │   ├── css/
 │   └── js/
 ├── static/images/        # 포켓몬 아이콘, 장소 아이콘
-└── log/                  # 서버 로그 (일별 로테이션)
+├── scripts/              # 빌드/추출 스크립트
+├── server/               # 아카이브된 Express 서버 코드
+├── vite.config.js        # Vite 빌드 설정
+├── biome.json            # Biome 린트/포맷 설정
+└── .github/workflows/    # GitHub Actions 배포
 ```
 
-## API 엔드포인트
+## 포켓몬 생성 원리
 
-| 엔드포인트 | 설명 | 주요 파라미터 |
-|---|---|---|
-| `GET /places.json` | 포케스탑/체육관 조회 | `min_latitude`, `max_latitude`, `min_longitude`, `max_longitude` |
-| `GET /pokemons.json` | 포켓몬 목록 조회 | 위 좌표 + `zoom_level`, `filters` |
-| `GET /pokemon.json` | 개별 포켓몬 조회 | `id` |
+서버 없이 클라이언트에서 결정론적으로 포켓몬을 생성합니다:
+
+1. **시드**: `hash(스폰포인트 인덱스, 사이클 번호)` → 같은 시간+위치 = 같은 포켓몬
+2. **사이클**: 30분 주기, 15~25분간 활성
+3. **분산**: 스폰포인트별 고유 오프셋으로 자연스러운 출현/소멸
+4. **PRNG**: mulberry32 알고리즘 (빠르고 분포 균일)
 
 ## 데이터
 
-포트폴리오 시연용 더미 데이터가 포함되어 있습니다:
-- **포케스탑/체육관**: 서울 지역 약 15,000개
-- **포켓몬**: 서울 주요 지역 (강남, 홍대, 여의도 등) 약 2,000마리
-
-## 브랜치
-
-| 브랜치 | 설명 |
-|---|---|
-| `main` | 전시용 (고정 타임스탬프 + 더미 데이터) |
-| `main-old` | 실시간 크롤링 서비스 연동 버전 |
-| `feature/mapbox` | Mapbox 지도 구현 |
-| `feature/pokemon` | 포켓몬 표시 기능 |
-| `feature/sample-for-display` | 전시용 시간 설정 |
+- **스폰 포인트**: 서울 지역 약 15,217개 (포케스탑, 체육관, 편의점 등)
+- **포켓몬**: 1~251번 (1~2세대), 종별 기술풀 포함
 
 ## Changelog
 
 | 시기 | 내용 |
-|---|---|
+|------|------|
 | 2017.02 | 프로젝트 시작. 포케스탑 정보 수집, SQLite DB 구축, 다음지도 기반 클러스터링 지도 구현 |
 | 2017.02 | Mapbox(Leaflet) 기반 지도로 전환. 포켓몬 출현 위치 표시, 실시간 업데이트, 팝업 정보(IV, 기술, 남은 시간) 구현 |
 | 2017.02 | 카카오맵/구글맵 연동, OS별 딥링크 분기, 2세대 포켓몬 대응 |
@@ -113,6 +113,7 @@ gorados/
 | 2026.02 | 포트폴리오용 더미 데이터 추가, README 작성 |
 | 2026.02 | 빌드 도구 모던화: gulp+browserify → Vite, yarn → pnpm, Express 5, Winston 3, Biome, Vitest 도입 |
 | 2026.02 | Mapbox → Leaflet + OpenStreetMap 전환 (Mapbox 유료화 대응) |
+| 2026.02 | 서버 기반 → 정적 사이트 전환. 시드 PRNG 포켓몬 생성, GitHub Pages 배포 |
 
 ## 라이선스
 
